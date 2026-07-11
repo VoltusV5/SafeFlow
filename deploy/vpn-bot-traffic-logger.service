@@ -1,0 +1,16 @@
+[Unit]
+Description=VPN bot traffic logger (wg dump -> DB + daily admin report)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/vpn-telegram-bot
+EnvironmentFile=-/root/vpn-telegram-bot/.env
+ExecStart=/root/vpn-telegram-bot/venv/bin/python -m vpn_bot.daemons.traffic_logger
+Restart=on-failure
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target

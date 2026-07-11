@@ -1,0 +1,19 @@
+[Unit]
+Description=VPN Telegram bot (aiogram)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/vpn-telegram-bot
+EnvironmentFile=-/root/vpn-telegram-bot/.env
+# online = Src/«ава для бота.png»; offline = Src/«бот на починке.jpg» (см. scripts/set_bot_avatar.py)
+ExecStartPre=-/root/vpn-telegram-bot/venv/bin/python /root/vpn-telegram-bot/scripts/set_bot_avatar.py online
+ExecStopPost=-/root/vpn-telegram-bot/venv/bin/python /root/vpn-telegram-bot/scripts/set_bot_avatar.py offline
+ExecStart=/root/vpn-telegram-bot/venv/bin/python -m vpn_bot
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=VPN Telegram bot healthcheck (systemd + Docker + SQLite integrity)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/vpn-telegram-bot
+EnvironmentFile=-/root/vpn-telegram-bot/.env
+# При сбое — сообщение админам из ADMIN_IDS (тот же бот, что и основной)
+ExecStart=/root/vpn-telegram-bot/venv/bin/python /root/vpn-telegram-bot/scripts/vpn_bot_healthcheck.py --notify-admins

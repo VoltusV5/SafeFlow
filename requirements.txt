@@ -1,0 +1,8 @@
+aiogram>=3.13,<4
+sqlalchemy[asyncio]>=2.0,<3
+aiosqlite>=0.19
+pydantic-settings>=2.0
+qrcode[pil]>=7.4
+Pillow>=10.0
+psutil>=5.9
+matplotlib>=3.8

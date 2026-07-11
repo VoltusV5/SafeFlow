@@ -1,0 +1,14 @@
+services:
+  clean-xray:
+    image: ghcr.io/xtls/xray-core:latest
+    container_name: ${CLEAN_XRAY_CONTAINER:-vpn-clean-xray}
+    restart: unless-stopped
+    command: ["run", "-c", "/etc/xray/config.json"]
+    ports:
+      - "${CLEAN_XRAY_PORT_VLESS:-7443}:7443/tcp"
+      - "${CLEAN_XRAY_PORT_TROJAN:-7444}:7444/tcp"
+      - "${CLEAN_XRAY_PORT_VMESS:-7445}:7445/tcp"
+      - "${CLEAN_XRAY_PORT_SHADOWSOCKS:-7446}:7446/tcp"
+    volumes:
+      - ./clean-xray/config.json:/etc/xray/config.json:ro
+      - ./clean-xray/runtime:/etc/xray/runtime

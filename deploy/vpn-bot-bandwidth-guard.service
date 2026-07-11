@@ -1,0 +1,17 @@
+[Unit]
+Description=VPN bot fair-share guard (wg + CPU -> user_limits)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/vpn-telegram-bot
+EnvironmentFile=-/root/vpn-telegram-bot/.env
+# tc при необходимости: BANDWIDTH_TC_APPLY=1 (только root; реализация tc — под вашу схему маршрутизации)
+ExecStart=/root/vpn-telegram-bot/venv/bin/python -m vpn_bot.daemons.bandwidth_guard
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+services:
+  vkturn-xray:
+    image: ghcr.io/xtls/xray-core:latest
+    container_name: vpn-vkturn-xray
+    restart: unless-stopped
+    command: ["run", "-c", "/etc/xray/config.json"]
+    ports:
+      - "7543:7543/tcp"
+    volumes:
+      - ./vkturn-xray/config.json:/etc/xray/config.json:ro
+
+  vk-turn-proxy:
+    image: ghcr.io/cacggghp/vk-turn-proxy:latest
+    container_name: vpn-vk-turn-proxy
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      CONNECT_ADDR: "127.0.0.1:7543"
+      VLESS_MODE: "true"

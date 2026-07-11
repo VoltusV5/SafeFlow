@@ -1,0 +1,120 @@
+# MTProto (mtg) + SOCKS5 с логином/паролем.
+# Запуск из каталога проекта (читается .env):
+#   docker compose -f deploy/docker-compose.telegram-proxy.yml --env-file .env up -d
+#
+# Перед первым запуском задайте в .env:
+#   TELEGRAM_MTPROTO_SECRET — fake TLS (рекомендуется): домен для SNI, не обязательно ваш:
+#     docker run --rm ghcr.io/9seconds/mtg:latest generate-secret www.cloudflare.com
+#     (или свой домен, указывающий на этот сервер). Старый секрет с IP тоже работает, но хуже против DPI.
+#   TELEGRAM_SOCKS_USER       — произвольный логин
+#   TELEGRAM_SOCKS_PASSWORD   — длинный случайный пароль (openssl rand -hex 24)
+# Порты задаются в .env. Основные: MTProto TELEGRAM_MTPROTO_PORT, SOCKS TELEGRAM_SOCKS_PORT.
+# Дополнительные экземпляры (тот же секрет / те же логин-пароль SOCKS) — ALT1/ALT2 для тестов в разных сетях.
+# HTTP для браузера (8086) — один контейнер http-proxy, не дублировать.
+#
+# HTTP-прокси для Chrome / SwitchyOmega (тип HTTP + логин/пароль; SOCKS5+auth в Chromium не работает).
+
+services:
+  mtg:
+    image: ghcr.io/9seconds/mtg:latest
+    container_name: vpn-telegram-mtg
+    restart: unless-stopped
+    command:
+      [
+        "simple-run",
+        "0.0.0.0:${TELEGRAM_MTPROTO_PORT:-8888}",
+        "${TELEGRAM_MTPROTO_SECRET}",
+        "-i",
+        "prefer-ipv4",
+        "-t",
+        "30s",
+        "-p",
+        "443",
+      ]
+    ports:
+      - "${TELEGRAM_MTPROTO_PORT:-8888}:${TELEGRAM_MTPROTO_PORT:-8888}"
+
+  mtg-alt1:
+    image: ghcr.io/9seconds/mtg:latest
+    container_name: vpn-telegram-mtg-alt1
+    restart: unless-stopped
+    command:
+      [
+        "simple-run",
+        "0.0.0.0:${TELEGRAM_MTPROTO_PORT_ALT1:-8443}",
+        "${TELEGRAM_MTPROTO_SECRET}",
+        "-i",
+        "prefer-ipv4",
+        "-t",
+        "30s",
+        "-p",
+        "443",
+      ]
+    ports:
+      - "${TELEGRAM_MTPROTO_PORT_ALT1:-8443}:${TELEGRAM_MTPROTO_PORT_ALT1:-8443}"
+
+  mtg-alt2:
+    image: ghcr.io/9seconds/mtg:latest
+    container_name: vpn-telegram-mtg-alt2
+    restart: unless-stopped
+    command:
+      [
+        "simple-run",
+        "0.0.0.0:${TELEGRAM_MTPROTO_PORT_ALT2:-2053}",
+        "${TELEGRAM_MTPROTO_SECRET}",
+        "-i",
+        "prefer-ipv4",
+        "-t",
+        "30s",
+        "-p",
+        "443",
+      ]
+    ports:
+      - "${TELEGRAM_MTPROTO_PORT_ALT2:-2053}:${TELEGRAM_MTPROTO_PORT_ALT2:-2053}"
+
+  socks5:
+    image: serjs/go-socks5-proxy:latest
+    container_name: vpn-telegram-socks5
+    restart: unless-stopped
+    environment:
+      REQUIRE_AUTH: "true"
+      PROXY_USER: "${TELEGRAM_SOCKS_USER}"
+      PROXY_PASSWORD: "${TELEGRAM_SOCKS_PASSWORD}"
+      PROXY_PORT: "${TELEGRAM_SOCKS_PORT:-64945}"
+    ports:
+      - "${TELEGRAM_SOCKS_PORT:-64945}:${TELEGRAM_SOCKS_PORT:-64945}"
+
+  socks5-alt1:
+    image: serjs/go-socks5-proxy:latest
+    container_name: vpn-telegram-socks5-alt1
+    restart: unless-stopped
+    environment:
+      REQUIRE_AUTH: "true"
+      PROXY_USER: "${TELEGRAM_SOCKS_USER}"
+      PROXY_PASSWORD: "${TELEGRAM_SOCKS_PASSWORD}"
+      PROXY_PORT: "${TELEGRAM_SOCKS_PORT_ALT1:-64946}"
+    ports:
+      - "${TELEGRAM_SOCKS_PORT_ALT1:-64946}:${TELEGRAM_SOCKS_PORT_ALT1:-64946}"
+
+  socks5-alt2:
+    image: serjs/go-socks5-proxy:latest
+    container_name: vpn-telegram-socks5-alt2
+    restart: unless-stopped
+    environment:
+      REQUIRE_AUTH: "true"
+      PROXY_USER: "${TELEGRAM_SOCKS_USER}"
+      PROXY_PASSWORD: "${TELEGRAM_SOCKS_PASSWORD}"
+      PROXY_PORT: "${TELEGRAM_SOCKS_PORT_ALT2:-64947}"
+    ports:
+      - "${TELEGRAM_SOCKS_PORT_ALT2:-64947}:${TELEGRAM_SOCKS_PORT_ALT2:-64947}"
+
+  # HTTP CONNECT + Basic auth — для Chrome / ZeroOmega (протокол HTTP, не SOCKS5).
+  http-proxy:
+    image: ginuerzh/gost:latest
+    container_name: vpn-telegram-http-proxy
+    restart: unless-stopped
+    command:
+      - "-L"
+      - "http://${TELEGRAM_HTTP_PROXY_USER}:${TELEGRAM_HTTP_PROXY_PASSWORD}@0.0.0.0:${TELEGRAM_HTTP_PROXY_PORT:-8086}"
+    ports:
+      - "${TELEGRAM_HTTP_PROXY_PORT:-8086}:${TELEGRAM_HTTP_PROXY_PORT:-8086}"

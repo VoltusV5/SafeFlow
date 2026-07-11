@@ -1,0 +1,70 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Local recovery snapshots (checkpoints, photorec dedupe, secrets)
+.recovery/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Tools
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+Desktop.ini
+
+# Daemon state (last MSK morning job date)
+.moscow_morning_jobs_done
+
+# Runtime locks (Amnezia / generate_peer)
+.lock_*
+.generate_peer.lock
+
+# Bot database (local SQLite)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+
+# Local state files
+.admin_alerts_state.json
+.vpn_healthcheck_wg_cooldown.json
+
+# Xray configs
+deploy/*/config.json

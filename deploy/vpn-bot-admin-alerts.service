@@ -1,0 +1,13 @@
+[Unit]
+Description=VPN bot admin alerts (disk + journalctl errors)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/vpn-telegram-bot
+EnvironmentFile=-/root/vpn-telegram-bot/.env
+ExecStart=/root/vpn-telegram-bot/venv/bin/python /root/vpn-telegram-bot/scripts/admin_alerts.py
+
+[Install]
+WantedBy=multi-user.target
