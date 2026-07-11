@@ -3,11 +3,11 @@
 > ВАЖНО: Весь код пишется строго по методологии TDD (Test-Driven Development). Сначала пишется тест (в папке `tests/`), проверяется, что он падает (Red), затем пишется реализация (Green), затем рефакторинг (Refactor).
 
 ## Этап 1: Инфраструктура и Конфигурация (DevOps Setup)
-- `[ ]` Инициализация структуры директорий (`app`, `docs`, `smart_agent`, `tests`, `frontend`, `twa`).
-- `[ ]` Создание `requirements.txt` (FastAPI, aiogram 3.x, sqlalchemy, asyncpg, alembic, redis, pydantic-settings, cryptography, pytest, pytest-asyncio, httpx).
-- `[ ]` Создание `docker-compose.yml` (PostgreSQL, Redis, Бэкенд, Frontend).
-- `[ ]` Настройка Pydantic Settings (`app/core/config.py`) и `.env.example`.
-- `[ ]` TDD: Тесты шифрования Fernet -> Утилиты шифрования ключей (`app/core/security.py`).
+- `[x]` Инициализация структуры директорий (`app`, `docs`, `smart_agent`, `tests`, `frontend`, `twa`).
+- `[x]` Создание `requirements.txt` (FastAPI, aiogram 3.x, sqlalchemy, asyncpg, alembic, redis, pydantic-settings, cryptography, pytest, pytest-asyncio, httpx).
+- `[x]` Создание `docker-compose.yml` (PostgreSQL, Redis, Бэкенд, Frontend).
+- `[x]` Настройка Pydantic Settings (`app/core/config.py`) и `.env.example`.
+- `[x]` TDD: Тесты шифрования Fernet -> Утилиты шифрования ключей (`app/core/security.py`).
 
 ## Этап 2: База Данных (Data Layer - Models)
 - `[ ]` Настройка Async Engine и SessionMaker (`app/db/session.py`).

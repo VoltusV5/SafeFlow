@@ -23,3 +23,8 @@ IF technical constraints require a change in architecture, database schema, or b
 1. **STOP:** You are strictly forbidden from writing code that contradicts the current `plan_refaktora.md`.
 2. **UPDATE:** You must first modify the relevant section of `plan_refaktora.md`.
 3. **REPORT:** At the very beginning of your response, you MUST output an `[АРХИТЕКТУРНЫЕ ИЗМЕНЕНИЯ]` block, listing exactly what was changed in the plan and why. Only after this block you may proceed to code generation.
+
+## 3. LEGACY CODE & REUSE POLICY
+- **Legacy Directories:** The `deploy/`, `scripts/`, and `vpn_bot/` directories contain the legacy (old) version of the project.
+- **Allowed Reuse:** You can (and should) read the code from these directories to extract and reuse existing business logic, WireGuard/Xray configurations, or API integration logic. Do not reinvent the wheel for things that are already functional.
+- **Strict Isolation:** Mixing legacy code with the new architecture is strictly PROHIBITED. All new code within the `app/` and `smart_agent/` directories must be written from scratch, ensuring it is fully asynchronous, clean, and completely decoupled from the legacy setup. Use the old codebase strictly as a reference guide.
