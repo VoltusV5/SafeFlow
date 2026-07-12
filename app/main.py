@@ -28,7 +28,10 @@ async def lifespan(app: FastAPI):
             webhook_url = f"{settings.bot_webhook_url}{settings.bot_webhook_path}"
             await bot.set_webhook(url=webhook_url, drop_pending_updates=True)
         else:
-            await bot.delete_webhook(drop_pending_updates=True)
+            try:
+                await bot.delete_webhook(drop_pending_updates=True)
+            except Exception as e:
+                logger.warning(f"Failed to delete webhook: {e}")
             # Запускаем long polling в фоне
             app.state.bot_task = asyncio.create_task(dp.start_polling(bot))
     except Exception as e:

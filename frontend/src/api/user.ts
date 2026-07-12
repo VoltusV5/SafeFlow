@@ -8,8 +8,9 @@ export interface SubscriptionInfo {
 
 export interface User {
   id: number;
-  telegram_id: number;
+  telegram_id: number | null;
   username: string | null;
+  email: string | null;
   balance: number;
   is_banned: boolean;
   created_at: string;

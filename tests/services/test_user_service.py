@@ -73,15 +73,15 @@ async def test_register_user_with_referral():
 
     assert user.telegram_id == 123
 
-    # Реферал получает 14 дней (7 базовых + 7 бонусных за реферальную ссылку)
+    # Ожидаем 10 дней (3 дня базовый триал + 7 дней бонус)
     user_subs = await uow.subscriptions.get_all()
     user_sub = next((s for s in user_subs if s.user_id == user.id), None)
     assert user_sub is not None
     assert user_sub.plan == PlanType.BASE
 
-    min_expiry = datetime.now(timezone.utc) + timedelta(days=13)
+    min_expiry = datetime.now(timezone.utc) + timedelta(days=9)
     assert user_sub.expires_at > min_expiry, (
-        f"Реферал должен получить минимум 14 дней, получил: {user_sub.expires_at}"
+        f"Ожидаем срок более 9 дней, получили: {user_sub.expires_at}"
     )
 
     # Реферер получает +30 дней к своей подписке

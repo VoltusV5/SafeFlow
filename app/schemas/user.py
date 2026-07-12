@@ -7,7 +7,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, EmailStr
 
 from app.schemas.base import BaseSchema
 
@@ -20,9 +20,24 @@ class UserCreate(BaseModel):
     referred_by: int | None = Field(default=None, description="ID реферера")
 
 
-class UserEmailLogin(BaseModel):
-    email: str
+class UserEmailLogin(BaseSchema):
+    email: EmailStr
     password: str
+
+class RegisterInitRequest(BaseSchema):
+    email: EmailStr
+    password: str
+
+class RegisterConfirmRequest(BaseSchema):
+    email: EmailStr
+    code: str
+
+class LoginCodeInitRequest(BaseSchema):
+    email: EmailStr
+
+class LoginCodeConfirmRequest(BaseSchema):
+    email: EmailStr
+    code: str
 
 
 class UserUpdate(BaseSchema):
@@ -54,6 +69,7 @@ class UserResponse(BaseSchema):
     id: int
     telegram_id: int | None = None
     username: str | None = None
+    email: str | None = None
     balance: float
     is_banned: bool
     created_at: datetime

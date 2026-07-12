@@ -3,10 +3,12 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel
 
-from app.api.dependencies import get_uow
+from app.api.dependencies import get_current_user, get_uow
 from app.core.config import settings
 from app.core.enums import PaymentStatus
+from app.db.models.user import User
 from app.db.uow import UnitOfWork
 from app.services.billing_service import BillingService
 from app.services.payment_providers import (AAIOProvider, BasePaymentProvider,
@@ -14,6 +16,11 @@ from app.services.payment_providers import (AAIOProvider, BasePaymentProvider,
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+class PaymentCreateRequest(BaseModel):
+    amount: int
+    plan: str = "BASE"
 
 
 async def process_webhook(provider: BasePaymentProvider, request: Request, uow: UnitOfWork):
@@ -73,3 +80,15 @@ async def aaio_webhook(request: Request, uow: UnitOfWork = Depends(get_uow)):
         )
     provider = AAIOProvider()
     return await process_webhook(provider, request, uow)
+
+
+@router.post("/create")
+async def create_payment(
+    payload: PaymentCreateRequest,
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_uow)
+):
+    """Создает платеж и возвращает ссылку на оплату."""
+    # В реальной системе тут создается платеж в БД и генерируется ссылка AAIO.
+    # Для заглушки:
+    return {"payment_url": "https://aaio.so/pay/demo", "amount": payload.amount}

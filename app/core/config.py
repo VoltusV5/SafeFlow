@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     # JWT Settings
     jwt_secret: SecretStr
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
+    access_token_expire_minutes: int = 60 * 24 * 90  # 90 days
 
     # Payment
     # Режим платёжного провайдера: "sandbox" — локальная имитация, "production" — реальный шлюз

@@ -4,7 +4,7 @@ aiogram==3.4.1
 SQLAlchemy==2.0.29
 asyncpg==0.29.0
 alembic==1.13.1
-redis==5.0.3
+redis>=4.6.0
 pydantic==2.5.3
 pydantic-settings==2.2.1
 cryptography==42.0.5
@@ -21,8 +21,9 @@ isort
 arq==0.26.0
 autopep8==2.3.1
 PyJWT==2.8.0
-aiosmtplib==3.0.1
+aiosmtplib>=2.0.0
 python-multipart==0.0.9
 slowapi==0.1.10
 passlib==1.7.4
-bcrypt==4.1.2
+bcrypt==3.2.2
+email-validator==2.1.1

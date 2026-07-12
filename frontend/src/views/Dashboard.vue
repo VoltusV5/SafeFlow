@@ -1,17 +1,34 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { Shield, Plus, Copy, ChevronRight, Loader2 } from '@lucide/vue';
+import { useRouter } from 'vue-router';
+import { Shield, Plus, Copy, ChevronRight, Loader2, User as UserIcon, LogOut } from '@lucide/vue';
+import { apiClient } from '../api/index';
 import { authTelegram } from '../api/auth';
 import { fetchUserProfile } from '../api/user';
 import type { UserMeResponse } from '../api/user';
 import { fetchMyKeys } from '../api/keys';
 import type { VpnKey } from '../api/keys';
 
+const router = useRouter();
+
 const isLoading = ref(true);
 const error = ref<string | null>(null);
 
 const profile = ref<UserMeResponse | null>(null);
 const keys = ref<VpnKey[]>([]);
+
+const isLogoutMenuOpen = ref(false);
+const isCreatingKey = ref(false);
+const isTariffMenuOpen = ref(false);
+
+const toggleLogoutMenu = () => {
+  isLogoutMenuOpen.value = !isLogoutMenuOpen.value;
+};
+
+const handleLogout = () => {
+  localStorage.removeItem('access_token');
+  router.push('/login');
+};
 
 const copyToClipboard = async (text: string) => {
   try {
@@ -30,6 +47,51 @@ const formatDate = (dateString: string | null) => {
 
 const getDeviceName = (protocol: string, id: number) => {
   return `${protocol} Устройство #${id}`;
+};
+
+const createKey = async () => {
+  try {
+    isCreatingKey.value = true;
+    await apiClient.post('/keys');
+    keys.value = await fetchMyKeys();
+  } catch (err: any) {
+    console.error(err);
+    alert(err.response?.data?.detail || 'Ошибка при создании ключа');
+  } finally {
+    isCreatingKey.value = false;
+  }
+};
+
+const handleTopup = async () => {
+  const amountStr = prompt('Введите сумму пополнения в рублях:');
+  if (!amountStr) return;
+  const amount = parseInt(amountStr, 10);
+  if (isNaN(amount) || amount <= 0) {
+    alert('Неверная сумма');
+    return;
+  }
+  
+  try {
+    const res = await apiClient.post('/payments/create', { amount, plan: 'BASE' });
+    if (res.data.payment_url) {
+      window.open(res.data.payment_url, '_blank');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Ошибка создания платежа');
+  }
+};
+
+const handlePlanBuy = async (plan: string, amount: number) => {
+  try {
+    const res = await apiClient.post('/payments/create', { amount, plan });
+    if (res.data.payment_url) {
+      window.open(res.data.payment_url, '_blank');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Ошибка создания платежа');
+  }
 };
 
 onMounted(async () => {
@@ -53,8 +115,8 @@ onMounted(async () => {
       }
     } else if (!hasToken) {
       // Если мы вне телеги и нет токена - перенаправляем на /login
-      // (Vue Router сделает это сам, но на всякий случай)
-      console.warn("No access token and no initData.");
+      router.push('/login');
+      return;
     }
 
     // Загружаем данные профиля и ключи
@@ -81,7 +143,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto relative text-slate-100 font-sans antialiased">
+  <div class="min-h-screen bg-background p-4 pb-20 max-w-md mx-auto relative text-slate-100 font-sans antialiased" @click="isLogoutMenuOpen = false">
     
     <div v-if="isLoading" class="flex flex-col items-center justify-center h-[80vh]">
       <Loader2 class="w-10 h-10 text-primary animate-spin mb-4" />
@@ -94,7 +156,7 @@ onMounted(async () => {
       </div>
       <p class="text-white font-medium mb-2">Ошибка подключения</p>
       <p class="text-slate-400 text-sm px-4">{{ error }}</p>
-      <p class="text-slate-500 text-xs mt-4">Убедитесь, что вы открываете приложение внутри Telegram или передали VITE_MOCK_INIT_DATA.</p>
+      <p class="text-slate-500 text-xs mt-4">Убедитесь, что вы авторизованы или открываете приложение внутри Telegram.</p>
     </div>
 
     <template v-else-if="profile">
@@ -106,7 +168,21 @@ onMounted(async () => {
           </div>
           <div>
             <h1 class="text-xl font-bold text-white">SafeFlow VPN</h1>
-            <p class="text-sm text-slate-400">@{{ profile.user.username || profile.user.telegram_id }}</p>
+            <p class="text-sm text-slate-400" v-if="profile.user.username">@{{ profile.user.username }}</p>
+            <p class="text-sm text-slate-400" v-else-if="profile.user.telegram_id">@{{ profile.user.telegram_id }}</p>
+          </div>
+        </div>
+        
+        <!-- User Profile Dropdown -->
+        <div class="relative" @click.stop>
+          <button @click="toggleLogoutMenu" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+            <UserIcon class="w-5 h-5 text-white" />
+          </button>
+          
+          <div v-if="isLogoutMenuOpen" class="absolute right-0 mt-2 w-40 glass-panel !p-2 z-50">
+            <button @click="handleLogout" class="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 rounded-lg flex items-center gap-2 transition-colors">
+              <LogOut class="w-4 h-4" /> Выйти
+            </button>
           </div>
         </div>
       </header>
@@ -123,27 +199,46 @@ onMounted(async () => {
               <span class="text-slate-400 text-sm">₽</span>
             </div>
           </div>
-          <button class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition">
+          <button @click="handleTopup" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-white/10 transition">
             <Plus class="w-5 h-5 text-white" />
           </button>
         </div>
 
-        <div class="bg-black/20 rounded-xl p-3 flex items-center justify-between mt-4">
-          <div class="flex items-center gap-3" v-if="profile.active_subscription">
-            <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
-            <div>
-              <p class="text-sm font-medium text-white">Тариф {{ profile.active_subscription.plan }}</p>
-              <p class="text-xs text-slate-400">Активен до {{ formatDate(profile.active_subscription.expires_at) }}</p>
+        <div class="bg-black/20 rounded-xl p-3 mt-4 relative">
+          <div class="flex items-center justify-between cursor-pointer hover:bg-white/5 transition rounded-lg p-2 -m-2" @click="isTariffMenuOpen = !isTariffMenuOpen">
+            <div class="flex items-center gap-3" v-if="profile.active_subscription">
+              <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+              <div>
+                <p class="text-sm font-medium text-white">Тариф {{ profile.active_subscription.plan }}</p>
+                <p class="text-xs text-slate-400">Активен до {{ formatDate(profile.active_subscription.expires_at) }}</p>
+              </div>
             </div>
-          </div>
-          <div class="flex items-center gap-3" v-else>
-            <div class="w-2 h-2 rounded-full bg-slate-500"></div>
-            <div>
-              <p class="text-sm font-medium text-white">Нет активной подписки</p>
-              <p class="text-xs text-slate-400">Пополните баланс для активации</p>
+            <div class="flex items-center gap-3" v-else>
+              <div class="w-2 h-2 rounded-full bg-slate-500"></div>
+              <div>
+                <p class="text-sm font-medium text-white">Нет активной подписки</p>
+                <p class="text-xs text-slate-400">Нажмите чтобы выбрать тариф</p>
+              </div>
             </div>
+            <ChevronRight class="w-5 h-5 text-slate-500 transition-transform" :class="{ 'rotate-90': isTariffMenuOpen }" />
           </div>
-          <ChevronRight class="w-5 h-5 text-slate-500" />
+          
+          <div v-if="isTariffMenuOpen" class="mt-3 pt-3 border-t border-white/10 flex flex-col gap-2">
+            <button @click="handlePlanBuy('BASE', 100)" class="w-full text-left p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5 flex justify-between items-center">
+              <div>
+                <span class="text-white font-medium block">Базовый (BASE)</span>
+                <span class="text-xs text-slate-400">Оптимально для одного устройства</span>
+              </div>
+              <span class="text-primary font-bold">100 ₽</span>
+            </button>
+            <button @click="handlePlanBuy('PREMIUM', 150)" class="w-full text-left p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-white/5 flex justify-between items-center">
+              <div>
+                <span class="text-white font-medium block">Расширенный (PREMIUM)</span>
+                <span class="text-xs text-slate-400">Для всех устройств</span>
+              </div>
+              <span class="text-primary font-bold">150 ₽</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -153,14 +248,23 @@ onMounted(async () => {
           <Shield class="w-5 h-5 text-primary" />
           Мои ключи
         </h3>
-        <button class="text-sm text-primary font-medium flex items-center gap-1 hover:text-blue-400 transition-colors">
-          <Plus class="w-4 h-4" /> Новый
+        <button 
+          @click="createKey" 
+          :disabled="isCreatingKey"
+          class="text-sm text-primary font-medium flex items-center gap-1 hover:text-blue-400 transition-colors disabled:opacity-50"
+        >
+          <Loader2 v-if="isCreatingKey" class="w-4 h-4 animate-spin" />
+          <Plus v-else class="w-4 h-4" /> 
+          Новый
         </button>
       </div>
       
       <div v-if="keys.length === 0" class="text-center py-8">
         <p class="text-slate-400 text-sm">У вас пока нет ключей доступа.</p>
-        <button class="mt-3 text-primary text-sm font-medium hover:underline">Создать первый ключ</button>
+        <button @click="createKey" :disabled="isCreatingKey" class="mt-3 text-primary text-sm font-medium hover:underline flex items-center justify-center gap-2 mx-auto disabled:opacity-50">
+          <Loader2 v-if="isCreatingKey" class="w-4 h-4 animate-spin" />
+          Создать первый ключ
+        </button>
       </div>
       
       <div v-else class="space-y-3">

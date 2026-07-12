@@ -1,14 +1,13 @@
-"""Роутер для управления ключами VPN."""
-
 from typing import List
 
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_current_user, get_uow
+from app.core.enums import Protocol
 from app.db.models.user import User
 from app.db.uow import UnitOfWork
-
 from app.schemas.vpn import KeyResponse
+from app.services.vpn_manager import VpnManagerService
 
 router = APIRouter()
 
@@ -28,3 +27,18 @@ async def get_my_keys(
         result.append(KeyResponse.model_validate(key, from_attributes=True))
 
     return result
+
+
+@router.post("", response_model=KeyResponse)
+async def create_key(
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_uow)
+) -> dict:
+    """Создает новый ключ (по умолчанию сервер 1, протокол VLESS)."""
+    vpn_manager = VpnManagerService(uow)
+    key = await vpn_manager.create_key(
+        user_id=current_user.id,
+        server_id=1,
+        protocol=Protocol.VLESS
+    )
+    return key.model_dump()
