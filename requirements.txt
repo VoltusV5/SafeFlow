@@ -5,7 +5,7 @@ SQLAlchemy==2.0.29
 asyncpg==0.29.0
 alembic==1.13.1
 redis==5.0.3
-pydantic==2.6.4
+pydantic==2.5.3
 pydantic-settings==2.2.1
 cryptography==42.0.5
 pytest==8.1.1

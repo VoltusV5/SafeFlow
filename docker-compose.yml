@@ -40,9 +40,18 @@ services:
         condition: service_started
     env_file:
       - .env
+    volumes:
+      - .:/app
     ports:
       - "8000:8000"
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  frontend:
+    image: nginx:alpine
+    container_name: safeflow_frontend
+    restart: always
+    ports:
+      - "80:80"
 
 volumes:
   postgres_data:

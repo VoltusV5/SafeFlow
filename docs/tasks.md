@@ -9,12 +9,47 @@
 - `[x]` Настройка Pydantic Settings (`app/core/config.py`) и `.env.example`.
 - `[x]` TDD: Тесты шифрования Fernet -> Утилиты шифрования ключей (`app/core/security.py`).
 
+```text
+vpn-telegram-bot/
+├── app/
+│   ├── api/                 # FastAPI роутеры (эндпоинты REST)
+│   │   ├── dependencies.py
+│   │   └── routes/
+│   ├── bot/                 # Хендлеры aiogram (интерфейс Telegram)
+│   │   ├── handlers/
+│   │   ├── keyboards/
+│   │   └── middlewares/
+│   ├── core/                # Конфигурация (Pydantic settings, логирование)
+│   │   ├── config.py
+│   │   └── security.py
+│   ├── db/                  # База данных
+│   │   ├── migrations/      # Alembic миграции
+│   │   ├── models/          # SQLAlchemy модели таблиц
+│   │   └── repositories/    # Паттерн Repository для изоляции SQL
+│   ├── services/            # Бизнес-логика (не зависит от API или Бота)
+│   │   ├── billing.py
+│   │   ├── vpn_manager.py
+│   │   └── users.py
+│   ├── tasks/               # Фоновые джобы (Redis/Celery/arq)
+│   └── main.py              # Точка входа (Инициализация FastAPI и Бота)
+├── docs/                    # Документация (MkDocs)
+│   ├── schema.dbml
+│   └── план рефактора.md
+├── smart_agent/             # Код легковесного агента для нод (FastAPI)
+│   ├── main.py
+│   └── vpn_builder.py
+├── tests/                   # Автотесты (pytest)
+├── .github/workflows/       # CI/CD пайплайны
+├── docker-compose.yml       # Инфраструктура центрального сервера
+└── requirements.txt         # Зависимости Python
+```
+
 ## Этап 2: База Данных (Data Layer - Models)
-- `[ ]` Настройка Async Engine и SessionMaker (`app/db/session.py`).
-- `[ ]` Базовая модель SQLAlchemy (`app/db/models/base.py`).
-- `[ ]` Создание моделей: `User`, `Subscription`, `Payment`, `Key`, `Server`, `Promocode`, `RefundTicket`.
-- `[ ]` Инициализация Alembic (`alembic init -t async migrations`).
-- `[ ]` Генерация и применение первой миграции БД.
+- `[x]` Настройка Async Engine и SessionMaker (`app/db/session.py`).
+- `[x]` Базовая модель SQLAlchemy (`app/db/models/base.py`).
+- `[x]` Создание моделей: `User`, `Subscription`, `Payment`, `Key`, `Server`, `Promocode`, `RefundTicket`.
+- `[x]` Инициализация Alembic (`alembic init -t async migrations`).
+- `[x]` Генерация и применение первой миграции БД.
 
 ## Этап 3: Доступ к Данным (Repositories & TDD)
 - `[ ]` TDD: Тест Base CRUD -> Реализация `BaseRepository`.
