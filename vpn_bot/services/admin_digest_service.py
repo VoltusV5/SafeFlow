@@ -16,21 +16,27 @@ from sqlalchemy import func, select
 
 from vpn_bot.config import get_settings
 from vpn_bot.constants import WG_HANDSHAKE_LAST_24H_SEC
-from vpn_bot.db.analytics_models import (DailyStats, HostMetricSample,
-                                         TrafficLog)
+from vpn_bot.db.analytics_models import DailyStats, HostMetricSample, TrafficLog
 from vpn_bot.db.models import VpnKey
 from vpn_bot.db.session import async_session_maker
 from vpn_bot.db.session_analytics import async_session_maker_analytics
 from vpn_bot.enums import VpnProtocol
 from vpn_bot.services.traffic_stats_service import (
-    clean_xray_traffic_gb_between, count_all_active_vpn_users_between,
+    clean_xray_traffic_gb_between,
+    count_all_active_vpn_users_between,
     count_distinct_clean_xray_users_between,
-    count_distinct_traffic_users_between, count_keys_issued_between,
-    count_new_users_between, count_problem_reports_between,
-    count_whitelist_bypass_feedback_between, get_heavy_users_this_month,
-    keys_issued_by_protocol_between, latest_clean_xray_online_at_between,
-    per_user_traffic_bytes_between, top_users_traffic_between,
-    total_traffic_gb_between)
+    count_distinct_traffic_users_between,
+    count_keys_issued_between,
+    count_new_users_between,
+    count_problem_reports_between,
+    count_whitelist_bypass_feedback_between,
+    get_heavy_users_this_month,
+    keys_issued_by_protocol_between,
+    latest_clean_xray_online_at_between,
+    per_user_traffic_bytes_between,
+    top_users_traffic_between,
+    total_traffic_gb_between,
+)
 from vpn_bot.utils.journal_errors import count_journal_errors_by_unit
 from vpn_bot.utils.moscow_schedule import MSK, moscow_day_bounds_utc
 from vpn_bot.utils.text import split_telegram_message
@@ -39,9 +45,7 @@ from vpn_bot.wg_utils import parse_wg_dump
 
 logger = logging.getLogger(__name__)
 
-_WG_PROTOCOLS = frozenset(
-    {VpnProtocol.AMNEZIA_WG.value, VpnProtocol.WIREGUARD.value}
-)
+_WG_PROTOCOLS = frozenset({VpnProtocol.AMNEZIA_WG.value, VpnProtocol.WIREGUARD.value})
 _CLEAN_XRAY_PROTOCOLS = frozenset(
     {
         VpnProtocol.XRAY_VLESS.value,
@@ -68,7 +72,9 @@ async def count_wg_keys_with_handshake_last_24h(session, wg_if: str) -> int:
     if not recent_pubs:
         return 0
     r = await session.execute(
-        select(func.count()).select_from(VpnKey).where(
+        select(func.count())
+        .select_from(VpnKey)
+        .where(
             VpnKey.is_active.is_(True),
             VpnKey.wg_peer_public_key.isnot(None),
             VpnKey.wg_peer_public_key != "",
@@ -84,7 +90,9 @@ def _median_float(vals: list[float]) -> float:
     return float(median(vals))
 
 
-async def try_insert_daily_stats_row(report_day: date, start: datetime, end: datetime) -> None:  # noqa: E501
+async def try_insert_daily_stats_row(
+    report_day: date, start: datetime, end: datetime
+) -> None:  # noqa: E501
     """Одна строка daily_stats за календарный день МСК (идемпотентно)."""
     async with async_session_maker() as session:
         async with async_session_maker_analytics() as session_a:
@@ -94,9 +102,13 @@ async def try_insert_daily_stats_row(report_day: date, start: datetime, end: dat
             if existing:
                 return
             total_gb = await total_traffic_gb_between(session_a, start, end)
-            users_n = await count_distinct_traffic_users_between(session_a, start, end)  # noqa: E501
+            users_n = await count_distinct_traffic_users_between(
+                session_a, start, end
+            )  # noqa: E501
             keys_c = await count_keys_issued_between(session, start, end)
-            top = await top_users_traffic_between(session, session_a, start, end, 5)  # noqa: E501
+            top = await top_users_traffic_between(
+                session, session_a, start, end, 5
+            )  # noqa: E501
             tb = total_gb * (1024**3)
             avg_mbps = (tb * 8) / 86400 / 1_000_000 if total_gb > 0 else 0.0
             top_uid = top[0][0] if top else None
@@ -112,7 +124,9 @@ async def try_insert_daily_stats_row(report_day: date, start: datetime, end: dat
                     top_traffic_gb=top_gb,
                     keys_issued_count=keys_c,
                     top_users_json=json.dumps(
-                        [{"tg_id": tg, "gb": round(gb, 3)} for _, tg, gb in top],  # noqa: E501
+                        [
+                            {"tg_id": tg, "gb": round(gb, 3)} for _, tg, gb in top
+                        ],  # noqa: E501
                         ensure_ascii=False,
                     ),
                 )
@@ -127,7 +141,9 @@ async def _active_key_categories(
     only_wg, only_clean_xray, only_other, mixed, users_with_active_keys, mean_keys_per_user.  # noqa: E501
     """
     r = await session.execute(
-        select(VpnKey.user_id, VpnKey.protocol).where(VpnKey.is_active.is_(True))  # noqa: E501
+        select(VpnKey.user_id, VpnKey.protocol).where(
+            VpnKey.is_active.is_(True)
+        )  # noqa: E501
     )
     by_user: dict[int, set[str]] = defaultdict(set)
     for uid, proto in r.all():
@@ -150,7 +166,9 @@ async def _active_key_categories(
     if n_users == 0:
         return 0, 0, 0, 0, 0, 0.0
     total_keys = await session.scalar(
-        select(func.count()).select_from(VpnKey).where(VpnKey.is_active.is_(True))  # noqa: E501
+        select(func.count())
+        .select_from(VpnKey)
+        .where(VpnKey.is_active.is_(True))  # noqa: E501
     )
     mean_k = float(total_keys or 0) / float(n_users)
     return only_wg, only_cx, only_other, mixed, n_users, mean_k
@@ -221,7 +239,9 @@ def _build_cpu_chart_png(
 
     fig, ax = plt.subplots(figsize=(9, 3.2))
     ax.plot(xs, cpu_raw, alpha=0.22, color="#999", linewidth=0.8, label="CPU")
-    ax.plot(xs, cpu_s, color="#1a5276", linewidth=1.3, label=f"сглажено (~{w} точек)")  # noqa: E501
+    ax.plot(
+        xs, cpu_s, color="#1a5276", linewidth=1.3, label=f"сглажено (~{w} точек)"
+    )  # noqa: E501
     ax.axhline(
         max(cpu_raw),
         color="#c0392b",
@@ -261,7 +281,9 @@ def _build_ram_chart_png(
 
     fig, ax = plt.subplots(figsize=(9, 3.2))
     ax.plot(xs, ram_raw, alpha=0.22, color="#999", linewidth=0.8, label="RAM")
-    ax.plot(xs, ram_s, color="#117a65", linewidth=1.3, label=f"сглажено (~{w} точек)")  # noqa: E501
+    ax.plot(
+        xs, ram_s, color="#117a65", linewidth=1.3, label=f"сглажено (~{w} точек)"
+    )  # noqa: E501
     ax.axhline(
         max(ram_raw),
         color="#c0392b",
@@ -320,12 +342,14 @@ def _build_network_chart_png(
     return _fig_to_png_bytes(fig)
 
 
-
-
-async def _handshake_users_30d_series(session_analytics) -> list[tuple[date, int]]:  # noqa: E303, E501
+async def _handshake_users_30d_series(
+    session_analytics,
+) -> list[tuple[date, int]]:  # noqa: E303, E501
     start_utc = datetime.now(UTC) - timedelta(days=30)
     r = await session_analytics.execute(
-        select(TrafficLog.logged_at, TrafficLog.user_id, TrafficLog.latest_handshake)  # noqa: E501
+        select(
+            TrafficLog.logged_at, TrafficLog.user_id, TrafficLog.latest_handshake
+        )  # noqa: E501
         .where(TrafficLog.logged_at >= start_utc)
         .order_by(TrafficLog.logged_at)
     )
@@ -345,7 +369,9 @@ async def _handshake_users_30d_series(session_analytics) -> list[tuple[date, int
     return out
 
 
-def _build_handshake_30d_chart_png(series: list[tuple[date, int]]) -> bytes | None:  # noqa: E501
+def _build_handshake_30d_chart_png(
+    series: list[tuple[date, int]],
+) -> bytes | None:  # noqa: E501
     if len(series) < 2:
         return None
     try:
@@ -367,6 +393,7 @@ def _build_handshake_30d_chart_png(series: list[tuple[date, int]]) -> bytes | No
     fig.autofmt_xdate()
     fig.tight_layout()
     return _fig_to_png_bytes(fig)
+
 
 def _build_host_charts_png_bundle(  # noqa: E302
     samples: list[tuple[datetime, float, float, float | None, float | None]],
@@ -392,30 +419,48 @@ async def build_admin_digest_text_and_chart(  # noqa: C901
             active_users = await count_distinct_traffic_users_between(
                 session_a, start, end
             )
-            clean_xray_active_users = await count_distinct_clean_xray_users_between(  # noqa: E501
-                session_a, start, end
+            clean_xray_active_users = (
+                await count_distinct_clean_xray_users_between(  # noqa: E501
+                    session_a, start, end
+                )
             )
             all_active_vpn_users = await count_all_active_vpn_users_between(
                 session_a, start, end
             )
             total_gb = await total_traffic_gb_between(session_a, start, end)
-            clean_xray_gb = await clean_xray_traffic_gb_between(session_a, start, end)  # noqa: E501, F841
-            clean_xray_last_online_at = await latest_clean_xray_online_at_between(  # noqa: E501
+            clean_xray_gb = await clean_xray_traffic_gb_between(
                 session_a, start, end
+            )  # noqa: E501, F841
+            clean_xray_last_online_at = (
+                await latest_clean_xray_online_at_between(  # noqa: E501
+                    session_a, start, end
+                )
             )
-            per_user = await per_user_traffic_bytes_between(session_a, start, end)  # noqa: E501
+            per_user = await per_user_traffic_bytes_between(
+                session_a, start, end
+            )  # noqa: E501
             gbs = [b / (1024**3) for _, b in per_user]
             med_gb = _median_float(gbs)  # noqa: F841
-            top = await top_users_traffic_between(session, session_a, start, end, 5)  # noqa: E501
+            top = await top_users_traffic_between(
+                session, session_a, start, end, 5
+            )  # noqa: E501
             top5_gb = sum(gb for _, _, gb in top)
             tail_gb = max(0.0, total_gb - top5_gb)
-            tail_pct = (100.0 * tail_gb / total_gb) if total_gb > 0 else 0.0  # noqa: F841, E501
-            top_pct = (100.0 * top5_gb / total_gb) if total_gb > 0 else 0.0  # noqa: F841, E501
+            tail_pct = (
+                (100.0 * tail_gb / total_gb) if total_gb > 0 else 0.0
+            )  # noqa: F841, E501
+            top_pct = (
+                (100.0 * top5_gb / total_gb) if total_gb > 0 else 0.0
+            )  # noqa: F841, E501
 
-            heavy_users = await get_heavy_users_this_month(session, session_a, 100.0)  # noqa: E501
+            heavy_users = await get_heavy_users_this_month(
+                session, session_a, 100.0
+            )  # noqa: E501
             heavy_count = len(heavy_users)  # noqa: F841
 
-            keys_by_proto = await keys_issued_by_protocol_between(session, start, end)  # noqa: E501
+            keys_by_proto = await keys_issued_by_protocol_between(
+                session, start, end
+            )  # noqa: E501
             keys_total_issued = sum(keys_by_proto.values())
             clean_xray_keys_issued = sum(
                 int(keys_by_proto.get(proto, 0))
@@ -426,14 +471,18 @@ async def build_admin_digest_text_and_chart(  # noqa: C901
                     VpnProtocol.XRAY_SHADOWSOCKS.value,
                 )
             )
-            ow, ocx, ooth, mx, n_key_users, mean_keys = await _active_key_categories(session)  # noqa: E501
+            ow, ocx, ooth, mx, n_key_users, mean_keys = await _active_key_categories(
+                session
+            )  # noqa: E501
 
             wg_iface = (settings.daemon_wg_interface or "").strip() or "awg0"
             wg_keys_hs_24h = await count_wg_keys_with_handshake_last_24h(
                 session, wg_iface
             )
 
-            peak = await _traffic_peak_hours_msk(session_a, start, end)  # noqa: F841, E501
+            peak = await _traffic_peak_hours_msk(
+                session_a, start, end
+            )  # noqa: F841, E501
             prob_n = await count_problem_reports_between(session, start, end)
             wl_ok, wl_bad = await count_whitelist_bypass_feedback_between(
                 session_a, start, end
@@ -524,7 +573,13 @@ async def build_admin_digest_text_and_chart(  # noqa: C901
             f"  • активных пользователей clean xray (трафик/online): {clean_xray_active_users}",  # noqa: E501
             f"  • активно использовали VPN (WG ∪ clean xray): {all_active_vpn_users}",  # noqa: E501
             f"  • последний online clean xray (аналог handshake): "  # noqa: F541, E501
-            + (clean_xray_last_online_at.astimezone(MSK).strftime("%Y-%m-%d %H:%M:%S MSK") if clean_xray_last_online_at else "нет за сутки"),  # noqa: E501
+            + (
+                clean_xray_last_online_at.astimezone(MSK).strftime(
+                    "%Y-%m-%d %H:%M:%S MSK"
+                )
+                if clean_xray_last_online_at
+                else "нет за сутки"
+            ),  # noqa: E501
             "",
             "Ключи:",
             f"  • WG-ключей с handshake за последние 24 ч (снимок wg): {wg_keys_hs_24h}",  # noqa: E501
@@ -546,7 +601,8 @@ async def build_admin_digest_text_and_chart(  # noqa: C901
             + (f" ({100 * ocx / pct_base:.0f}%)" if pct_base else ""),
             f"    — только прочие (не WG и не clean xray): {ooth}"
             + (f" ({100 * ooth / pct_base:.0f}%)" if pct_base else ""),
-            f"    — смешанно: {mx}" + (f" ({100 * mx / pct_base:.0f}%)" if pct_base else ""),  # noqa: E501
+            f"    — смешанно: {mx}"
+            + (f" ({100 * mx / pct_base:.0f}%)" if pct_base else ""),  # noqa: E501
             "",
         ]
     )
@@ -584,12 +640,16 @@ async def build_admin_digest_text_and_chart(  # noqa: C901
             "Графики построены по последним 48 ч (за сутки отчёта точек < 3 — "
             "так бывает сразу после первого запуска демона или если сутки были пустые)."  # noqa: E501
         )
-    lines.append("Ниже альбом из до 4 графиков: CPU, RAM, сеть (Мбит/с), handshake-пользователи за 30 дней.")  # noqa: E501
+    lines.append(
+        "Ниже альбом из до 4 графиков: CPU, RAM, сеть (Мбит/с), handshake-пользователи за 30 дней."
+    )  # noqa: E501
 
     cpu_png, ram_png, net_png = await asyncio.to_thread(
         _build_host_charts_png_bundle, chart_samples
     )
-    hs30_png = await asyncio.to_thread(_build_handshake_30d_chart_png, hs30_series)  # noqa: E501
+    hs30_png = await asyncio.to_thread(
+        _build_handshake_30d_chart_png, hs30_series
+    )  # noqa: E501
     charts: list[tuple[str, bytes]] = []
     if cpu_png:
         charts.append(("host_cpu.png", cpu_png))
@@ -640,8 +700,8 @@ async def send_admin_digest(  # noqa: C901
                 logger.warning("admin digest media_group %s: %s", aid, e)
                 for fn, data in charts_list:
                     try:
-                        await bot.send_photo(
-                            aid, BufferedInputFile(data, filename=fn)
-                        )
+                        await bot.send_photo(aid, BufferedInputFile(data, filename=fn))
                     except Exception as e2:
-                        logger.warning("admin digest chart %s %s: %s", aid, fn, e2)  # noqa: E501
+                        logger.warning(
+                            "admin digest chart %s %s: %s", aid, fn, e2
+                        )  # noqa: E501

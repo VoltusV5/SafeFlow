@@ -160,7 +160,11 @@ def main() -> int:  # noqa: C901
                 f"📋 journalctl -p err за последние {window} мин.",
                 f"Юниты: {', '.join(units) if units else '(нет — задайте ADMIN_JOURNAL_UNITS)'}",  # noqa: E501
                 f"Строк: {n}"
-                + (f" (прошлый замер: {prev})" if prev is not None else " (первый замер)"),  # noqa: E501
+                + (
+                    f" (прошлый замер: {prev})"
+                    if prev is not None
+                    else " (первый замер)"
+                ),  # noqa: E501
             ]
             if n >= abs_thr:
                 parts.append(f"Сработал порог «много ошибок»: ≥{abs_thr}.")

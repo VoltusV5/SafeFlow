@@ -76,7 +76,11 @@ class StarDonationService:
 
     async def list_due(self, before: datetime) -> list[tuple[int, int, int]]:
         r = await self._s.execute(
-            select(StarDonationSubscription.id, User.tg_id, StarDonationSubscription.stars_amount)  # noqa: E501
+            select(
+                StarDonationSubscription.id,
+                User.tg_id,
+                StarDonationSubscription.stars_amount,
+            )  # noqa: E501
             .join(User, User.id == StarDonationSubscription.user_id)
             .where(
                 StarDonationSubscription.is_active.is_(True),

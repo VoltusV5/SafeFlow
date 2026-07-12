@@ -28,7 +28,9 @@ async def purge_stale_wg_keys(session: AsyncSession, stale_days: int) -> int:
             VpnKey.wg_peer_public_key.isnot(None),
             VpnKey.wg_peer_public_key != "",
             or_(
-                and_(VpnKey.last_activity_at.is_(None), VpnKey.generated_at < cutoff),  # noqa: E501
+                and_(
+                    VpnKey.last_activity_at.is_(None), VpnKey.generated_at < cutoff
+                ),  # noqa: E501
                 and_(
                     VpnKey.last_activity_at.isnot(None),
                     VpnKey.last_activity_at < cutoff,
@@ -40,6 +42,7 @@ async def purge_stale_wg_keys(session: AsyncSession, stale_days: int) -> int:
     if not keys:
         return 0
     from vpn_bot.services.revocation_service import revoke_key_on_server
+
     for k in keys:
         await revoke_key_on_server(k)
     ids = [k.id for k in keys]

@@ -39,7 +39,9 @@ class Settings(BaseSettings):
         default=False,
         alias="REPLACE_ACTIVE_KEY_ON_NEW",
     )
-    max_amnezia_keys_per_24h: int = Field(default=50, alias="MAX_AMNEZIA_KEYS_PER_24H")  # noqa: E501
+    max_amnezia_keys_per_24h: int = Field(
+        default=50, alias="MAX_AMNEZIA_KEYS_PER_24H"
+    )  # noqa: E501
     awg_iface: str = Field(default="awg0", alias="AWG_IFACE")
     awg_docker_container: str = Field(default="", alias="AWG_DOCKER_CONTAINER")
     awg_wg_iface: str = Field(default="wg0", alias="AWG_WG_IFACE")
@@ -55,7 +57,9 @@ class Settings(BaseSettings):
         alias="TELEGRAM_PROXY_HOST",
         description="Хост для MTProto/SOCKS (если пусто — PUBLIC_HOST или адрес из WG_ENDPOINT).",  # noqa: E501
     )
-    telegram_mtproto_port: int = Field(default=8888, alias="TELEGRAM_MTPROTO_PORT")  # noqa: E501
+    telegram_mtproto_port: int = Field(
+        default=8888, alias="TELEGRAM_MTPROTO_PORT"
+    )  # noqa: E501
     telegram_mtproto_port_alt1: int = Field(
         default=8443,
         alias="TELEGRAM_MTPROTO_PORT_ALT1",
@@ -66,7 +70,9 @@ class Settings(BaseSettings):
         alias="TELEGRAM_MTPROTO_PORT_ALT2",
         description="Доп. публичный порт MTProto (третий контейнер mtg); должен совпадать с compose.",  # noqa: E501
     )
-    telegram_socks_port: int = Field(default=64945, alias="TELEGRAM_SOCKS_PORT")  # noqa: E501
+    telegram_socks_port: int = Field(
+        default=64945, alias="TELEGRAM_SOCKS_PORT"
+    )  # noqa: E501
     telegram_socks_port_alt1: int = Field(
         default=64946,
         alias="TELEGRAM_SOCKS_PORT_ALT1",
@@ -77,15 +83,21 @@ class Settings(BaseSettings):
         alias="TELEGRAM_SOCKS_PORT_ALT2",
         description="Доп. порт SOCKS5; должен совпадать с compose.",
     )
-    telegram_mtproto_secret: str = Field(default="", alias="TELEGRAM_MTPROTO_SECRET")  # noqa: E501
+    telegram_mtproto_secret: str = Field(
+        default="", alias="TELEGRAM_MTPROTO_SECRET"
+    )  # noqa: E501
     telegram_socks_user: str = Field(default="", alias="TELEGRAM_SOCKS_USER")
-    telegram_socks_password: str = Field(default="", alias="TELEGRAM_SOCKS_PASSWORD")  # noqa: E501
+    telegram_socks_password: str = Field(
+        default="", alias="TELEGRAM_SOCKS_PASSWORD"
+    )  # noqa: E501
     telegram_http_proxy_port: int = Field(
         default=8086,
         alias="TELEGRAM_HTTP_PROXY_PORT",
         description="HTTP-прокси с авторизацией для Chrome (GOST); HTTPS сайты идут через CONNECT.",  # noqa: E501
     )
-    telegram_http_proxy_user: str = Field(default="", alias="TELEGRAM_HTTP_PROXY_USER")  # noqa: E501
+    telegram_http_proxy_user: str = Field(
+        default="", alias="TELEGRAM_HTTP_PROXY_USER"
+    )  # noqa: E501
     telegram_http_proxy_password: str = Field(
         default="",
         alias="TELEGRAM_HTTP_PROXY_PASSWORD",
@@ -97,17 +109,25 @@ class Settings(BaseSettings):
         alias="AMNEZIA_SHARE_DESCRIPTION",
     )
     awg_client_mtu: str = Field(default="1376", alias="AWG_CLIENT_MTU")
-    wg_client_ip_prefix: str = Field(default="10.8.0", alias="WG_CLIENT_IP_PREFIX")  # noqa: E501
+    wg_client_ip_prefix: str = Field(
+        default="10.8.0", alias="WG_CLIENT_IP_PREFIX"
+    )  # noqa: E501
     # Параллельный Amnezia AWG для новых ключей (2.x стек / отдельный порт). Пусто — как раньше только AWG_DOCKER_CONTAINER.  # noqa: E501
-    awg2_docker_container: str = Field(default="", alias="AWG2_DOCKER_CONTAINER")  # noqa: E501
+    awg2_docker_container: str = Field(
+        default="", alias="AWG2_DOCKER_CONTAINER"
+    )  # noqa: E501
     awg2_wg_iface: str = Field(default="wg0", alias="AWG2_WG_IFACE")
     awg2_wg_conf: str = Field(
         default="/opt/amnezia/awg/wg0.conf",
         alias="AWG2_WG_CONF",
     )
     wg2_endpoint: str = Field(default="", alias="WG2_ENDPOINT")
-    wg2_server_public_key: str = Field(default="", alias="WG2_SERVER_PUBLIC_KEY")  # noqa: E501
-    wg2_client_ip_prefix: str = Field(default="10.8.2", alias="WG2_CLIENT_IP_PREFIX")  # noqa: E501
+    wg2_server_public_key: str = Field(
+        default="", alias="WG2_SERVER_PUBLIC_KEY"
+    )  # noqa: E501
+    wg2_client_ip_prefix: str = Field(
+        default="10.8.2", alias="WG2_CLIENT_IP_PREFIX"
+    )  # noqa: E501
 
     docker_wireguard_container: str = Field(
         default="amnezia-wireguard",
@@ -137,12 +157,20 @@ class Settings(BaseSettings):
         default="/opt/amnezia/wireguard/wg0.conf",
         alias="WIREGUARD_WG_CONF",
     )
-    wireguard_endpoint_port: int = Field(default=40560, alias="WIREGUARD_ENDPOINT_PORT")  # noqa: E501
-    wireguard_client_prefix: str = Field(default="10.8.1", alias="WIREGUARD_CLIENT_PREFIX")  # noqa: E501
+    wireguard_endpoint_port: int = Field(
+        default=40560, alias="WIREGUARD_ENDPOINT_PORT"
+    )  # noqa: E501
+    wireguard_client_prefix: str = Field(
+        default="10.8.1", alias="WIREGUARD_CLIENT_PREFIX"
+    )  # noqa: E501
     openvpn_tcp_port: int = Field(default=49970, alias="OPENVPN_TCP_PORT")
     cloak_external_port: int = Field(default=443, alias="CLOAK_EXTERNAL_PORT")
-    shadowsocks_public_port: int = Field(default=46768, alias="SHADOWSOCKS_PUBLIC_PORT")  # noqa: E501
-    xray_restart_container: bool = Field(default=True, alias="XRAY_RESTART_CONTAINER")  # noqa: E501
+    shadowsocks_public_port: int = Field(
+        default=46768, alias="SHADOWSOCKS_PUBLIC_PORT"
+    )  # noqa: E501
+    xray_restart_container: bool = Field(
+        default=True, alias="XRAY_RESTART_CONTAINER"
+    )  # noqa: E501
     clean_xray_container: str = Field(
         default="vpn-clean-xray",
         alias="CLEAN_XRAY_CONTAINER",
@@ -152,14 +180,22 @@ class Settings(BaseSettings):
         alias="CLEAN_XRAY_HOST",
         description="Публичный хост для ссылок clean Xray (если пусто — PUBLIC_HOST/WG_ENDPOINT).",  # noqa: E501
     )
-    clean_xray_port_vless: int = Field(default=7443, alias="CLEAN_XRAY_PORT_VLESS")  # noqa: E501
-    clean_xray_port_trojan: int = Field(default=7444, alias="CLEAN_XRAY_PORT_TROJAN")  # noqa: E501
-    clean_xray_port_vmess: int = Field(default=7445, alias="CLEAN_XRAY_PORT_VMESS")  # noqa: E501
+    clean_xray_port_vless: int = Field(
+        default=7443, alias="CLEAN_XRAY_PORT_VLESS"
+    )  # noqa: E501
+    clean_xray_port_trojan: int = Field(
+        default=7444, alias="CLEAN_XRAY_PORT_TROJAN"
+    )  # noqa: E501
+    clean_xray_port_vmess: int = Field(
+        default=7445, alias="CLEAN_XRAY_PORT_VMESS"
+    )  # noqa: E501
     clean_xray_port_shadowsocks: int = Field(
         default=7446,
         alias="CLEAN_XRAY_PORT_SHADOWSOCKS",
     )
-    clean_xray_api_port: int = Field(default=10085, alias="CLEAN_XRAY_API_PORT")  # noqa: E501
+    clean_xray_api_port: int = Field(
+        default=10085, alias="CLEAN_XRAY_API_PORT"
+    )  # noqa: E501
     clean_xray_reality_public_key: str = Field(
         default="",
         alias="CLEAN_XRAY_REALITY_PUBLIC_KEY",
@@ -176,8 +212,12 @@ class Settings(BaseSettings):
         default="chacha20-ietf-poly1305",
         alias="CLEAN_XRAY_SS_METHOD",
     )
-    daemon_wg_interface: str = Field(default="awg0", alias="DAEMON_WG_INTERFACE")  # noqa: E501
-    daemon_net_interface: str = Field(default="eth0", alias="DAEMON_NET_INTERFACE")  # noqa: E501
+    daemon_wg_interface: str = Field(
+        default="awg0", alias="DAEMON_WG_INTERFACE"
+    )  # noqa: E501
+    daemon_net_interface: str = Field(
+        default="eth0", alias="DAEMON_NET_INTERFACE"
+    )  # noqa: E501
     bandwidth_guard_log: str = Field(
         default="/var/log/vpn_bot_bandwidth_guard.log",
         alias="BANDWIDTH_GUARD_LOG",
@@ -249,6 +289,7 @@ class Settings(BaseSettings):
             for u in self.admin_journal_units.replace(" ", "").split(",")
             if u.strip()
         ]
+
     guides_src_dir: str = Field(
         default="Src",
         alias="GUIDES_SRC_DIR",

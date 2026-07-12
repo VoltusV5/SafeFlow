@@ -124,9 +124,7 @@ def build_amnezia_awg_share_document(
     mtu: str = "1376",
 ) -> dict[str, object]:
     """Корневой JSON как у экспорта Amnezia (один контейнер amnezia-awg)."""
-    inner = build_awg_last_config_object(
-        conf_text, client_pub_key, mtu=mtu
-    )
+    inner = build_awg_last_config_object(conf_text, client_pub_key, mtu=mtu)
     last_cfg = json.dumps(inner, ensure_ascii=False, indent=4)
     return {
         "containers": [

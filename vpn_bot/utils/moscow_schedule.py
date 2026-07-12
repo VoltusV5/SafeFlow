@@ -46,4 +46,6 @@ def seconds_until_next_moscow_time(
     target = m.replace(hour=hour, minute=minute, second=0, microsecond=0)
     if m >= target:
         target += timedelta(days=1)
-    return max(0.0, (target.astimezone(UTC) - now.astimezone(UTC)).total_seconds())  # noqa: E501
+    return max(
+        0.0, (target.astimezone(UTC) - now.astimezone(UTC)).total_seconds()
+    )  # noqa: E501

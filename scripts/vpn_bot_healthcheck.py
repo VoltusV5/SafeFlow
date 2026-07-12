@@ -22,9 +22,7 @@ from vpn_bot.utils.admin_notify import send_message_to_admins  # noqa: E402
 from vpn_bot.utils.sqlite_backup import resolve_sqlite_path  # noqa: E402
 from vpn_bot.wg_utils import parse_wg_dump  # noqa: E402
 
-_DEFAULT_UNITS = (
-    "vpn-bot.service,vpn-bot-traffic-logger.service,vpn-bot-bandwidth-guard.service"  # noqa: E501
-)
+_DEFAULT_UNITS = "vpn-bot.service,vpn-bot-traffic-logger.service,vpn-bot-bandwidth-guard.service"  # noqa: E501
 
 # Ожидаемые Docker-контейнеры (статус running). Список можно переопределить в .env:  # noqa: E501
 # VPN_BOT_HEALTHCHECK_CONTAINERS=name1,name2,...
@@ -37,7 +35,9 @@ _DEFAULT_CONTAINERS = (
 )
 
 # Мягкая проверка WG внутри контейнера (только чтение `wg show … dump`, трафик не трогаем).  # noqa: E501
-_DEFAULT_WG_TARGETS = "amnezia-awg:wg0,amnezia-awg-20:wg0,amnezia-wireguard:wg0"  # noqa: E501
+_DEFAULT_WG_TARGETS = (
+    "amnezia-awg:wg0,amnezia-awg-20:wg0,amnezia-wireguard:wg0"  # noqa: E501
+)
 _WG_COOLDOWN_FILE = _PROJECT_ROOT / ".vpn_healthcheck_wg_cooldown.json"
 
 
@@ -56,12 +56,18 @@ def _wg_cooldown_set(key: str, ts: float) -> None:
         if _WG_COOLDOWN_FILE.is_file():
             data = json.loads(_WG_COOLDOWN_FILE.read_text(encoding="utf-8"))
         data[key] = ts
-        _WG_COOLDOWN_FILE.write_text(json.dumps(data, indent=0), encoding="utf-8")  # noqa: E501
+        _WG_COOLDOWN_FILE.write_text(
+            json.dumps(data, indent=0), encoding="utf-8"
+        )  # noqa: E501
     except OSError as e:
-        print(f"vpn_bot_healthcheck: cannot write wg cooldown: {e}", file=sys.stderr)  # noqa: E501
+        print(
+            f"vpn_bot_healthcheck: cannot write wg cooldown: {e}", file=sys.stderr
+        )  # noqa: E501
 
 
-def _docker_wg_dump(container: str, iface: str, timeout: float = 15.0, auto_recover: bool = True) -> tuple[str, str | None]:  # noqa: E501
+def _docker_wg_dump(
+    container: str, iface: str, timeout: float = 15.0, auto_recover: bool = True
+) -> tuple[str, str | None]:  # noqa: E501
     r = subprocess.run(
         ["docker", "exec", container, "wg", "show", iface, "dump"],
         capture_output=True,
@@ -70,25 +76,48 @@ def _docker_wg_dump(container: str, iface: str, timeout: float = 15.0, auto_reco
     )
     if r.returncode != 0:
         err = (r.stderr or r.stdout or "").strip()[:400]
-        if auto_recover and ("No such device" in err or "Unable to access interface" in err):  # noqa: E501
+        if auto_recover and (
+            "No such device" in err or "Unable to access interface" in err
+        ):  # noqa: E501
             print(f"Auto-recovering {container}:{iface} ...", file=sys.stderr)
-            conf_path = "/opt/amnezia/awg/wg0.conf" if "awg" in container else "/opt/amnezia/wireguard/wg0.conf"  # noqa: E501
-            rec = subprocess.run(["docker", "exec", container, "wg-quick", "up", conf_path], capture_output=True, text=True)  # noqa: E501
+            conf_path = (
+                "/opt/amnezia/awg/wg0.conf"
+                if "awg" in container
+                else "/opt/amnezia/wireguard/wg0.conf"
+            )  # noqa: E501
+            rec = subprocess.run(
+                ["docker", "exec", container, "wg-quick", "up", conf_path],
+                capture_output=True,
+                text=True,
+            )  # noqa: E501
             if rec.returncode == 0:
-                print(f"Auto-recovery for {container}:{iface} successful.", file=sys.stderr)  # noqa: E501
+                print(
+                    f"Auto-recovery for {container}:{iface} successful.",
+                    file=sys.stderr,
+                )  # noqa: E501
                 try:
-                    from vpn_bot.utils.admin_notify import \
-                        send_message_to_admins
-                    send_message_to_admins(f"🛠 VPN bot: Автоматически восстановлен упавший интерфейс {iface} в контейнере {container}.")  # noqa: E501
+                    from vpn_bot.utils.admin_notify import send_message_to_admins
+
+                    send_message_to_admins(
+                        f"🛠 VPN bot: Автоматически восстановлен упавший интерфейс {iface} в контейнере {container}."
+                    )  # noqa: E501
                 except Exception as e:
                     print(f"Failed to notify admins: {e}", file=sys.stderr)
-                return _docker_wg_dump(container, iface, timeout, auto_recover=False)  # noqa: E501
+                return _docker_wg_dump(
+                    container, iface, timeout, auto_recover=False
+                )  # noqa: E501
             else:
                 err += f" | Auto-recovery wg-quick up failed: {(rec.stderr or rec.stdout).strip()[:200]}"  # noqa: E501
-        return "", f"docker exec {container} wg show {iface} dump: ошибка ({err or 'non-zero exit'})"  # noqa: E501
+        return (
+            "",
+            f"docker exec {container} wg show {iface} dump: ошибка ({err or 'non-zero exit'})",
+        )  # noqa: E501
     out = (r.stdout or "").strip()
     if not out:
-        return "", f"{container} {iface}: пустой вывод wg dump (интерфейс не поднят?)"  # noqa: E501
+        return (
+            "",
+            f"{container} {iface}: пустой вывод wg dump (интерфейс не поднят?)",
+        )  # noqa: E501
     return out, None
 
 
@@ -168,7 +197,9 @@ def _check_sqlite(path: Path | None, label: str) -> str | None:
     return None
 
 
-def collect_errors(*, skip_systemd: bool, skip_docker: bool) -> list[str]:  # noqa: C901, E501
+def collect_errors(
+    *, skip_systemd: bool, skip_docker: bool
+) -> list[str]:  # noqa: C901, E501
     errs: list[str] = []
     if not skip_systemd:
         units_raw = os.environ.get("VPN_BOT_HEALTHCHECK_UNITS", _DEFAULT_UNITS)
@@ -177,20 +208,30 @@ def collect_errors(*, skip_systemd: bool, skip_docker: bool) -> list[str]:  # no
             if msg:
                 errs.append(msg)
     if not skip_docker:
-        containers_raw = os.environ.get("VPN_BOT_HEALTHCHECK_CONTAINERS", _DEFAULT_CONTAINERS)  # noqa: E501
+        containers_raw = os.environ.get(
+            "VPN_BOT_HEALTHCHECK_CONTAINERS", _DEFAULT_CONTAINERS
+        )  # noqa: E501
         for c in [x.strip() for x in containers_raw.split(",") if x.strip()]:
             msg = _check_docker_container(c)
             if msg:
                 errs.append(msg)
 
-        if os.environ.get("VPN_BOT_HEALTHCHECK_SKIP_WG", "").strip().lower() not in (  # noqa: E501
+        if os.environ.get(
+            "VPN_BOT_HEALTHCHECK_SKIP_WG", ""
+        ).strip().lower() not in (  # noqa: E501
             "1",
             "true",
             "yes",
         ):
-            stale_sec = int(os.environ.get("VPN_BOT_HEALTHCHECK_WG_STALE_SEC", "600"))  # noqa: E501
-            min_peers = int(os.environ.get("VPN_BOT_HEALTHCHECK_WG_MIN_PEERS", "3"))  # noqa: E501
-            cooldown_min = int(os.environ.get("VPN_BOT_HEALTHCHECK_WG_COOLDOWN_MIN", "30"))  # noqa: E501
+            stale_sec = int(
+                os.environ.get("VPN_BOT_HEALTHCHECK_WG_STALE_SEC", "600")
+            )  # noqa: E501
+            min_peers = int(
+                os.environ.get("VPN_BOT_HEALTHCHECK_WG_MIN_PEERS", "3")
+            )  # noqa: E501
+            cooldown_min = int(
+                os.environ.get("VPN_BOT_HEALTHCHECK_WG_COOLDOWN_MIN", "30")
+            )  # noqa: E501
             targets_raw = os.environ.get(
                 "VPN_BOT_HEALTHCHECK_WG_TARGETS", _DEFAULT_WG_TARGETS
             )
@@ -213,7 +254,10 @@ def collect_errors(*, skip_systemd: bool, skip_docker: bool) -> list[str]:  # no
     s = get_settings()
     for label, p in (
         ("DATABASE_URL", resolve_sqlite_path(s.database_url)),
-        ("ANALYTICS_DATABASE_URL", resolve_sqlite_path(s.analytics_database_url)),  # noqa: E501
+        (
+            "ANALYTICS_DATABASE_URL",
+            resolve_sqlite_path(s.analytics_database_url),
+        ),  # noqa: E501
     ):
         msg = _check_sqlite(p, label)
         if msg:
@@ -248,9 +292,7 @@ def main() -> None:
         body = "\n".join(errs)
         print(body, file=sys.stderr)
         if args.notify_admins:
-            send_message_to_admins(
-                "⚠️ VPN bot: healthcheck не прошёл\n\n" + body
-            )
+            send_message_to_admins("⚠️ VPN bot: healthcheck не прошёл\n\n" + body)
         sys.exit(1)
     print("OK")
 

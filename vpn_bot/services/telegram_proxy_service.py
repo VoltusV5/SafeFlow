@@ -92,7 +92,9 @@ def iter_mtproto_ports(settings: Settings) -> list[int]:
 
 def build_socks_telegram_https_link(settings: Settings) -> str | None:
     """Основной порт SOCKS5 (обратная совместимость)."""
-    return build_socks_telegram_https_link_for_port(settings, settings.telegram_socks_port)  # noqa: E501
+    return build_socks_telegram_https_link_for_port(
+        settings, settings.telegram_socks_port
+    )  # noqa: E501
 
 
 def build_socks_telegram_https_link_for_port(
@@ -155,17 +157,19 @@ def format_telegram_proxy_message(settings: Settings) -> str:
         link = build_mtproto_telegram_https_link_for_port(settings, port)
         if link:
             href = escape(link, quote=True)
-            lines.append(
-                f'<a href="{href}">Подключить MTProto (порт {port})</a>'
-            )
-              # noqa: W293, E114, E116
+            lines.append(f'<a href="{href}">Подключить MTProto (порт {port})</a>')
+            # noqa: W293, E114, E116
     # Добавляем 4-ый прокси "MTProto РФ" с маскировкой под vk.com
     ru_secret = "7lYrylrQIe6G7B_fgSA1Eot2ay5jb20"
     ru_port = 4433
-    q_ru = urlencode({"server": host, "port": str(ru_port), "secret": ru_secret})  # noqa: E501
+    q_ru = urlencode(
+        {"server": host, "port": str(ru_port), "secret": ru_secret}
+    )  # noqa: E501
     link_ru = f"https://t.me/proxy?{q_ru}"
     href_ru = escape(link_ru, quote=True)
-    lines.append(f'<a href="{href_ru}">Подключить MTProto РФ (порт {ru_port})</a>')  # noqa: E501
+    lines.append(
+        f'<a href="{href_ru}">Подключить MTProto РФ (порт {ru_port})</a>'
+    )  # noqa: E501
 
     if len(lines) == 3:
         lines.append("Подключить MTProto")
@@ -175,9 +179,7 @@ def format_telegram_proxy_message(settings: Settings) -> str:
         link = build_socks_telegram_https_link_for_port(settings, port)
         if link:
             href = escape(link, quote=True)
-            lines.append(
-                f'<a href="{href}">Подключить SOCKS5 (порт {port})</a>'
-            )
+            lines.append(f'<a href="{href}">Подключить SOCKS5 (порт {port})</a>')
     if lines[-1] == "SOCKS5 для Telegram:":
         lines.append("Подключить SOCKS5")
 

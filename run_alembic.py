@@ -1,20 +1,12 @@
-"""Скрипт запуска миграций Alembic.
-
-Используется для ручного запуска и генерации миграций базы данных,
-особенно полезен в среде Windows для решения проблем с Event Loop.
-"""
-
 import asyncio
 import sys
 
-from alembic import command
-from alembic.config import Config
-
-if sys.platform == "win32":
+if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+from alembic.config import Config
+from alembic import command
 
 if __name__ == "__main__":
     alembic_cfg = Config("alembic.ini")
-    command.revision(
-        alembic_cfg, autogenerate=True, message="Initial migration"
-    )
+    command.revision(alembic_cfg, autogenerate=True, message="Initial migration")

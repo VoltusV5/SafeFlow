@@ -87,7 +87,9 @@ def main() -> None:
         print("Основная SQLite не найдена (DATABASE_URL).", file=sys.stderr)
         sys.exit(1)
     if not ana_p:
-        print("ANALYTICS_DATABASE_URL не указывает на SQLite.", file=sys.stderr)  # noqa: E501
+        print(
+            "ANALYTICS_DATABASE_URL не указывает на SQLite.", file=sys.stderr
+        )  # noqa: E501
         sys.exit(2)
     asyncio.run(_ensure_analytics_schema())
     _migrate_rows(main_p, ana_p)

@@ -29,6 +29,7 @@ _PROTOCOLS_TEXT_DELIVERY_COPY_HINT = frozenset(
     }
 )
 
+
 def _header_and_body(key: VpnKey) -> tuple[str, str]:  # noqa: E302
     raw = key.key_value
     s = raw.lstrip()

@@ -6,15 +6,15 @@ from html import escape
 
 from vpn_bot.config import Settings
 from vpn_bot.services.telegram_proxy_service import (
-    is_http_proxy_configured, resolve_telegram_proxy_host)
+    is_http_proxy_configured,
+    resolve_telegram_proxy_host,
+)
 
 SMARTPROXY_CHROME_STORE_URL = (
     "https://chromewebstore.google.com/detail/smartproxy/"
     "jogcnplbkgkfdakgdenhlpcfhjioidoj?hl=ru"
 )
-SMARTPROXY_FIREFOX_URL = (
-    "https://addons.mozilla.org/ru/firefox/addon/smartproxy/"
-)
+SMARTPROXY_FIREFOX_URL = "https://addons.mozilla.org/ru/firefox/addon/smartproxy/"
 SMARTPROXY_GUIDE_PDF_NAME = "Инструкция_SmartProxy.pdf"
 
 
@@ -36,7 +36,7 @@ def format_smartproxy_browser_message(settings: Settings) -> str:
     return (
         "<b>Инструкция по установке</b>\n\n"
         "<b>1.</b> Скачать расширение в официальном магазине:\n"
-        f'• Chrome (все браузеры кроме Firefox): '
+        f"• Chrome (все браузеры кроме Firefox): "
         f'<a href="{chrome_h}">SmartProxy в Chrome Web Store</a>\n'
         f'• Firefox: <a href="{ff_h}">SmartProxy для Firefox</a>\n\n'
         "<b>2.</b> Зайти в настройки расширения → "

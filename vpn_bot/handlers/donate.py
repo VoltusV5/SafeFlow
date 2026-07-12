@@ -6,25 +6,40 @@ from aiogram import F, Router
 from aiogram.filters import Command, StateFilter, and_f
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import (CallbackQuery, InlineKeyboardButton,
-                           InlineKeyboardMarkup, LabeledPrice, Message,
-                           PreCheckoutQuery)
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    LabeledPrice,
+    Message,
+    PreCheckoutQuery,
+)
 
 from vpn_bot.config import get_settings
-from vpn_bot.constants import (MAIN_MENU_BUTTON_BACK_TO_MAIN,
-                               MAX_TELEGRAM_STARS_DONATION,
-                               MIN_TELEGRAM_STARS_DONATION)
+from vpn_bot.constants import (
+    MAIN_MENU_BUTTON_BACK_TO_MAIN,
+    MAX_TELEGRAM_STARS_DONATION,
+    MIN_TELEGRAM_STARS_DONATION,
+)
 from vpn_bot.db.models import User
 from vpn_bot.filters import AuthedFilter
 from vpn_bot.handlers.contact_admin import ContactStates
 from vpn_bot.handlers.report_problem import ReportProblemStates
-from vpn_bot.keyboards import (da_freq_kb, donate_back_kb, donate_methods_kb,  # noqa: F401, E501
-                               main_menu_kb, star_freq_kb,
-                               star_monthly_reminder_kb, tribute_links_kb)
+from vpn_bot.keyboards import (
+    da_freq_kb,
+    donate_back_kb,  # noqa: F401, E501
+    donate_methods_kb,
+    main_menu_kb,
+    star_freq_kb,
+    star_monthly_reminder_kb,
+    tribute_links_kb,
+)
 from vpn_bot.services.da_reminder_service import DonationAlertsReminderService
 from vpn_bot.services.star_donation_service import StarDonationService
-from vpn_bot.utils.donate_payload import (build_star_invoice_payload,
-                                          parse_star_invoice_payload)
+from vpn_bot.utils.donate_payload import (
+    build_star_invoice_payload,
+    parse_star_invoice_payload,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +126,9 @@ async def pre_checkout_star(query: PreCheckoutQuery) -> None:
 
 
 @router.message(_auth, F.successful_payment)
-async def on_successful_payment(message: Message, session, db_user: User | None) -> None:  # noqa: E501
+async def on_successful_payment(
+    message: Message, session, db_user: User | None
+) -> None:  # noqa: E501
     sp = message.successful_payment
     if not sp:
         return
@@ -120,7 +137,8 @@ async def on_successful_payment(message: Message, session, db_user: User | None)
     parsed = parse_star_invoice_payload(sp.invoice_payload)
     if parsed is None or sp.total_amount != parsed[1]:
         logger.warning(
-            "ignored payment payload mismatch from tg_id=%s", message.from_user.id)  # noqa: E501
+            "ignored payment payload mismatch from tg_id=%s", message.from_user.id
+        )  # noqa: E501
         return
     monthly, stars = parsed
     if db_user is None:
@@ -149,7 +167,9 @@ async def on_successful_payment(message: Message, session, db_user: User | None)
 
 
 @router.message(_auth, Command("stars_remind_off"))
-async def cmd_stars_remind_off(message: Message, db_user: User, session) -> None:  # noqa: E501
+async def cmd_stars_remind_off(
+    message: Message, db_user: User, session
+) -> None:  # noqa: E501
     ok = await StarDonationService(session).deactivate_for_user(db_user.id)
     if ok:
         await message.answer("Ежемесячные напоминания о звёздах отключены.")
@@ -159,11 +179,17 @@ async def cmd_stars_remind_off(message: Message, db_user: User, session) -> None
 
 @router.message(_auth, Command("da_remind_off"))
 async def cmd_da_remind_off(message: Message, db_user: User, session) -> None:
-    ok = await DonationAlertsReminderService(session).deactivate_for_user(db_user.id)  # noqa: E501
+    ok = await DonationAlertsReminderService(session).deactivate_for_user(
+        db_user.id
+    )  # noqa: E501
     if ok:
-        await message.answer("Ежемесячные напоминания о Donation Alerts отключены.")  # noqa: E501
+        await message.answer(
+            "Ежемесячные напоминания о Donation Alerts отключены."
+        )  # noqa: E501
     else:
-        await message.answer("Активного напоминания Donation Alerts не найдено.")  # noqa: E501
+        await message.answer(
+            "Активного напоминания Donation Alerts не найдено."
+        )  # noqa: E501
 
 
 @router.message(_auth, _not_in_contact, F.text == "Поддержать")
@@ -180,7 +206,9 @@ async def donate_entry(message: Message, state: FSMContext) -> None:
 async def donate_menu(cb: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     if isinstance(cb.message, Message):
-        await cb.message.edit_text(DONATE_INTRO, reply_markup=donate_methods_kb())  # noqa: E501
+        await cb.message.edit_text(
+            DONATE_INTRO, reply_markup=donate_methods_kb()
+        )  # noqa: E501
     await cb.answer()
 
 
@@ -193,7 +221,9 @@ async def donate_da(cb: CallbackQuery) -> None:
 
 @router.callback_query(_auth, F.data == "donate:da:o")
 async def donate_da_once(cb: CallbackQuery) -> None:
-    url = get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"  # noqa: E501
+    url = (
+        get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"
+    )  # noqa: E501
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Donation Alerts — оплатить", url=url)],
@@ -217,7 +247,9 @@ async def donate_da_once(cb: CallbackQuery) -> None:
 @router.callback_query(_auth, F.data == "donate:da:m")
 async def donate_da_monthly(cb: CallbackQuery, db_user: User, session) -> None:
     await DonationAlertsReminderService(session).upsert_monthly(db_user.id)
-    url = get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"  # noqa: E501
+    url = (
+        get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"
+    )  # noqa: E501
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text="Donation Alerts — оплатить", url=url)],
@@ -252,7 +284,9 @@ async def donate_tribute(cb: CallbackQuery) -> None:
                 reply_markup=donate_back_kb(),
             )
         else:
-            await cb.message.edit_text(TEXT_TR, reply_markup=tribute_links_kb(web, tg))  # noqa: E501
+            await cb.message.edit_text(
+                TEXT_TR, reply_markup=tribute_links_kb(web, tg)
+            )  # noqa: E501
     await cb.answer()
 
 
@@ -316,7 +350,9 @@ async def donate_stars_freq(cb: CallbackQuery, state: FSMContext) -> None:
     data = await state.get_data()
     stars = data.get(_STAR_AMOUNT_KEY)
     if not isinstance(stars, int):
-        await cb.answer("Сначала введите число звёзд сообщением.", show_alert=True)  # noqa: E501
+        await cb.answer(
+            "Сначала введите число звёзд сообщением.", show_alert=True
+        )  # noqa: E501
         return
     monthly = cb.data.endswith(":m")
     await state.clear()
@@ -324,7 +360,9 @@ async def donate_stars_freq(cb: CallbackQuery, state: FSMContext) -> None:
         await _send_star_invoice(cb.bot, cb.from_user.id, stars, monthly)
     except Exception as e:
         logger.exception("send_invoice failed: %s", e)
-        await cb.answer("Не удалось выставить счёт. Попробуйте позже.", show_alert=True)  # noqa: E501
+        await cb.answer(
+            "Не удалось выставить счёт. Попробуйте позже.", show_alert=True
+        )  # noqa: E501
         return
     if isinstance(cb.message, Message):
         try:
@@ -335,14 +373,18 @@ async def donate_stars_freq(cb: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.callback_query(_auth, F.data.startswith("donate:pm:"))
-async def donate_repeat_monthly_invoice(cb: CallbackQuery, state: FSMContext) -> None:  # noqa: E501
+async def donate_repeat_monthly_invoice(
+    cb: CallbackQuery, state: FSMContext
+) -> None:  # noqa: E501
     await state.clear()
     try:
         stars = int(cb.data.split(":")[2])
     except (IndexError, ValueError):
         await cb.answer("Некорректные данные", show_alert=True)
         return
-    if stars < MIN_TELEGRAM_STARS_DONATION or stars > MAX_TELEGRAM_STARS_DONATION:  # noqa: E501
+    if (
+        stars < MIN_TELEGRAM_STARS_DONATION or stars > MAX_TELEGRAM_STARS_DONATION
+    ):  # noqa: E501
         await cb.answer("Недопустимая сумма", show_alert=True)
         return
     try:
@@ -360,20 +402,28 @@ async def donate_repeat_monthly_invoice(cb: CallbackQuery, state: FSMContext) ->
 
 
 @router.callback_query(_auth, F.data == "donate:rem:off")
-async def donate_reminder_off(cb: CallbackQuery, db_user: User, session) -> None:  # noqa: E501
+async def donate_reminder_off(
+    cb: CallbackQuery, db_user: User, session
+) -> None:  # noqa: E501
     ok = await StarDonationService(session).deactivate_for_user(db_user.id)
     if isinstance(cb.message, Message):
         await cb.message.edit_reply_markup(reply_markup=None)
         if ok:
             await cb.message.answer("Напоминания отключены.")
         else:
-            await cb.message.answer("Активной подписки с напоминаниями не было.")  # noqa: E501
+            await cb.message.answer(
+                "Активной подписки с напоминаниями не было."
+            )  # noqa: E501
     await cb.answer()
 
 
 @router.callback_query(_auth, F.data == "donate:da_rem:off")
-async def donate_da_reminder_off(cb: CallbackQuery, db_user: User, session) -> None:  # noqa: E501
-    ok = await DonationAlertsReminderService(session).deactivate_for_user(db_user.id)  # noqa: E501
+async def donate_da_reminder_off(
+    cb: CallbackQuery, db_user: User, session
+) -> None:  # noqa: E501
+    ok = await DonationAlertsReminderService(session).deactivate_for_user(
+        db_user.id
+    )  # noqa: E501
     if isinstance(cb.message, Message):
         await cb.message.edit_reply_markup(reply_markup=None)
         if ok:

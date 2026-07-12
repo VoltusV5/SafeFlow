@@ -1,7 +1,8 @@
-import os  # noqa: F401
+import os
 import glob
 
-def fix_all():  # noqa: E302
+
+def fix_all():
     # Fix F401 by adding # noqa: F401
     for filepath in glob.glob("app/**/__init__.py", recursive=True):
         with open(filepath, 'r', encoding='utf-8') as f:
@@ -28,5 +29,6 @@ def fix_all():  # noqa: E302
         with open(filepath, 'w', encoding='utf-8') as f:
             f.writelines(new_lines)
 
-if __name__ == "__main__":  # noqa: E305
+
+if __name__ == "__main__":
     fix_all()

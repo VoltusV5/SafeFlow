@@ -15,19 +15,25 @@ from sqlalchemy import delete, desc, select, update
 
 from vpn_bot.config import get_settings
 from vpn_bot.constants import WG_ACTIVE_HANDSHAKE_SEC
-from vpn_bot.db.analytics_models import (HostMetricSample, TrafficLog,
-                                         XrayTrafficLog)
+from vpn_bot.db.analytics_models import HostMetricSample, TrafficLog, XrayTrafficLog
 from vpn_bot.db.models import VpnKey
 from vpn_bot.db.session import async_session_maker, init_db
-from vpn_bot.db.session_analytics import (async_session_maker_analytics,
-                                          init_analytics_db)
+from vpn_bot.db.session_analytics import (
+    async_session_maker_analytics,
+    init_analytics_db,
+)
 from vpn_bot.enums import VpnProtocol
-from vpn_bot.services.admin_digest_service import (send_admin_digest,
-                                                   try_insert_daily_stats_row)
+from vpn_bot.services.admin_digest_service import (
+    send_admin_digest,
+    try_insert_daily_stats_row,
+)
 from vpn_bot.services.key_cleanup_service import purge_stale_wg_keys
-from vpn_bot.utils.moscow_schedule import (in_moscow_daily_window,
-                                           moscow_day_bounds_utc, moscow_now,
-                                           yesterday_moscow_date)
+from vpn_bot.utils.moscow_schedule import (
+    in_moscow_daily_window,
+    moscow_day_bounds_utc,
+    moscow_now,
+    yesterday_moscow_date,
+)
 from vpn_bot.utils.sqlite_backup import resolve_sqlite_path
 from vpn_bot.wg_runtime import wg_show_dump
 from vpn_bot.wg_utils import parse_wg_dump
@@ -39,17 +45,21 @@ _prev_net_counters: tuple[int, int, float] | None = None
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _STATE_FILE = _PROJECT_ROOT / ".moscow_morning_jobs_done"
-_XRAY_PROTOCOLS = frozenset({
-    VpnProtocol.XRAY_VLESS.value,
-    VpnProtocol.XRAY_TROJAN.value,
-    VpnProtocol.XRAY_VMESS.value,
-    VpnProtocol.XRAY_SHADOWSOCKS.value,
-})
+_XRAY_PROTOCOLS = frozenset(
+    {
+        VpnProtocol.XRAY_VLESS.value,
+        VpnProtocol.XRAY_TROJAN.value,
+        VpnProtocol.XRAY_VMESS.value,
+        VpnProtocol.XRAY_SHADOWSOCKS.value,
+    }
+)
 
 
 def _load_moscow_jobs_done_date() -> date | None:
     try:
-        return date.fromisoformat(_STATE_FILE.read_text(encoding="utf-8").strip())  # noqa: E501
+        return date.fromisoformat(
+            _STATE_FILE.read_text(encoding="utf-8").strip()
+        )  # noqa: E501
     except OSError:
         return None
     except ValueError:
@@ -90,9 +100,15 @@ async def _append_host_metric_sample(session) -> None:
                     if ds >= 0 and dr >= 0:
                         tx_mbps = (ds * 8.0) / dt / 1_000_000.0
                         rx_mbps = (dr * 8.0) / dt / 1_000_000.0
-            _prev_net_counters = (int(nic.bytes_sent), int(nic.bytes_recv), now_m)  # noqa: E501
+            _prev_net_counters = (
+                int(nic.bytes_sent),
+                int(nic.bytes_recv),
+                now_m,
+            )  # noqa: E501
         except Exception:
-            logger.debug("net_io_counters for host sample failed", exc_info=True)  # noqa: E501
+            logger.debug(
+                "net_io_counters for host sample failed", exc_info=True
+            )  # noqa: E501
 
         cpu = float(psutil.cpu_percent(interval=0.12))
         vm = psutil.virtual_memory()
@@ -165,9 +181,7 @@ async def _log_traffic_tick(session, session_analytics, wg_if: str) -> None:
                 session_duration_sec=dur,
             )
         )
-        active = (drx + dtx > 0) or (
-            hs and (now_ts - hs) <= WG_ACTIVE_HANDSHAKE_SEC
-        )
+        active = (drx + dtx > 0) or (hs and (now_ts - hs) <= WG_ACTIVE_HANDSHAKE_SEC)
         if active:
             await session.execute(
                 update(VpnKey)
@@ -180,7 +194,9 @@ async def _log_traffic_tick(session, session_analytics, wg_if: str) -> None:
 
 
 def _run_cmd(cmd: list[str], timeout: int = 15) -> str:
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)  # noqa: E501
+    p = subprocess.run(
+        cmd, capture_output=True, text=True, timeout=timeout, check=False
+    )  # noqa: E501
     if p.returncode != 0:
         raise RuntimeError((p.stderr or p.stdout or "").strip()[:500])
     return p.stdout or ""
@@ -188,16 +204,22 @@ def _run_cmd(cmd: list[str], timeout: int = 15) -> str:
 
 def _extract_key_id_from_url(proto: str, key_value: str) -> str | None:
     try:
-        if proto == VpnProtocol.XRAY_VLESS.value and key_value.startswith("vless://"):  # noqa: E501
+        if proto == VpnProtocol.XRAY_VLESS.value and key_value.startswith(
+            "vless://"
+        ):  # noqa: E501
             return key_value.split("vless://", 1)[1].split("@", 1)[0]
-        if proto == VpnProtocol.XRAY_TROJAN.value and key_value.startswith("trojan://"):  # noqa: E501
+        if proto == VpnProtocol.XRAY_TROJAN.value and key_value.startswith(
+            "trojan://"
+        ):  # noqa: E501
             return unquote(key_value.split("trojan://", 1)[1].split("@", 1)[0])
     except Exception:
         return None
     return None
 
 
-def _build_xray_email_user_map(active_keys: list[VpnKey], config_json: dict) -> dict[str, tuple[int, str]]:  # noqa: E501
+def _build_xray_email_user_map(
+    active_keys: list[VpnKey], config_json: dict
+) -> dict[str, tuple[int, str]]:  # noqa: E501
     by_proto_key: dict[tuple[str, str], int] = {}
     for k in active_keys:
         kid = _extract_key_id_from_url(str(k.protocol), str(k.key_value))
@@ -236,31 +258,51 @@ async def _log_clean_xray_tick(session, session_analytics) -> None:  # noqa: C90
     ctr = (s.clean_xray_container or "vpn-clean-xray").strip()
 
     active_keys_rows = await session.execute(
-        select(VpnKey).where(VpnKey.is_active.is_(True), VpnKey.protocol.in_(_XRAY_PROTOCOLS))  # noqa: E501
+        select(VpnKey).where(
+            VpnKey.is_active.is_(True), VpnKey.protocol.in_(_XRAY_PROTOCOLS)
+        )  # noqa: E501
     )
     active_keys = list(active_keys_rows.scalars().all())
     if not active_keys:
         return
 
-    with open("/root/vpn-telegram-bot/deploy/clean-xray/config.json", "r", encoding="utf-8") as f:  # noqa: E501
+    with open(
+        "/root/vpn-telegram-bot/deploy/clean-xray/config.json", "r", encoding="utf-8"
+    ) as f:  # noqa: E501
         cfg = json.load(f)
     email_map = _build_xray_email_user_map(active_keys, cfg)
     if not email_map:
         return
 
-    stats_raw = _run_cmd([
-        "docker", "exec", ctr, "xray", "api", "statsquery", f"--server=127.0.0.1:{int(s.clean_xray_api_port)}"  # noqa: E501
-    ])
+    stats_raw = _run_cmd(
+        [
+            "docker",
+            "exec",
+            ctr,
+            "xray",
+            "api",
+            "statsquery",
+            f"--server=127.0.0.1:{int(s.clean_xray_api_port)}",  # noqa: E501
+        ]
+    )
     stats_doc = json.loads(stats_raw or "{}")
 
-    online_raw = _run_cmd([
-        "docker", "exec", ctr, "xray", "api", "statsgetallonlineusers", f"--server=127.0.0.1:{int(s.clean_xray_api_port)}"  # noqa: E501
-    ])
+    online_raw = _run_cmd(
+        [
+            "docker",
+            "exec",
+            ctr,
+            "xray",
+            "api",
+            "statsgetallonlineusers",
+            f"--server=127.0.0.1:{int(s.clean_xray_api_port)}",  # noqa: E501
+        ]
+    )
     online_doc = json.loads(online_raw or "{}")
     online_names = set(str(x) for x in (online_doc.get("users") or []))
 
     totals: dict[str, dict[str, int]] = {}
-    for st in (stats_doc.get("stat") or []):
+    for st in stats_doc.get("stat") or []:
         name = str(st.get("name") or "")
         if not name.startswith("user>>>"):
             continue
@@ -286,7 +328,9 @@ async def _log_clean_xray_tick(session, session_analytics) -> None:  # noqa: C90
         last = (
             await session_analytics.execute(
                 select(XrayTrafficLog)
-                .where(XrayTrafficLog.user_id == uid, XrayTrafficLog.email == email)  # noqa: E501
+                .where(
+                    XrayTrafficLog.user_id == uid, XrayTrafficLog.email == email
+                )  # noqa: E501
                 .order_by(desc(XrayTrafficLog.logged_at))
                 .limit(1)
             )
@@ -326,7 +370,9 @@ async def _log_clean_xray_tick(session, session_analytics) -> None:  # noqa: C90
             )
 
 
-async def _morning_digest_and_stats(bot: Bot, report_day: date, purged_keys: int) -> None:  # noqa: E501
+async def _morning_digest_and_stats(
+    bot: Bot, report_day: date, purged_keys: int
+) -> None:  # noqa: E501
     start, end = moscow_day_bounds_utc(report_day)
     try:
         await try_insert_daily_stats_row(report_day, start, end)
@@ -347,14 +393,12 @@ async def _weekly_db_backup_reminder(bot: Bot) -> None:
     analytics_path = resolve_sqlite_path(s.analytics_database_url)
     path_hint = ""
     if main_path is not None and main_path.is_file():
-        path_hint = (
-            f"\n\nОсновная БД:\n{main_path}\n"
-        )
+        path_hint = f"\n\nОсновная БД:\n{main_path}\n"
         if analytics_path is not None and analytics_path.is_file():
             path_hint += f"Аналитика (трафик, метрики):\n{analytics_path}\n"
         path_hint += (
             "\nСкопируйте на свой ПК (scp/sftp) или снимок: "
-            "sqlite3 путь_к_бд \".backup backup.sqlite3\""
+            'sqlite3 путь_к_бд ".backup backup.sqlite3"'
         )
     else:
         path_hint = (
@@ -374,7 +418,9 @@ async def _weekly_db_backup_reminder(bot: Bot) -> None:
             logger.warning("admin backup reminder %s: %s", aid, e)
 
 
-async def _run_moscow_morning_jobs(bot: Bot, last_jobs_date: date | None) -> date | None:  # noqa: C901, E501
+async def _run_moscow_morning_jobs(
+    bot: Bot, last_jobs_date: date | None
+) -> date | None:  # noqa: C901, E501
     """Один раз за календарный день МСК в окне 08:00."""
     m = moscow_now()
     today_msk = m.date()
@@ -438,7 +484,9 @@ async def run_loop() -> None:  # noqa: C901
                     async with async_session_maker_analytics() as session_a:
                         try:
                             try:
-                                await _log_traffic_tick(session, session_a, wg_if)  # noqa: E501
+                                await _log_traffic_tick(
+                                    session, session_a, wg_if
+                                )  # noqa: E501
                             except Exception:
                                 logger.exception("wg traffic tick")
                             try:

@@ -5,40 +5,59 @@ from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter, and_f
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (BufferedInputFile, CallbackQuery, FSInputFile,
-                           LinkPreviewOptions, Message)
+from aiogram.types import (
+    BufferedInputFile,
+    CallbackQuery,
+    FSInputFile,
+    LinkPreviewOptions,
+    Message,
+)
 
-from vpn_bot.constants import (MAIN_MENU_BUTTON_BACK_TO_MAIN,
-                               MAIN_MENU_BUTTON_SUPPORT_DONATE)
+from vpn_bot.constants import (
+    MAIN_MENU_BUTTON_BACK_TO_MAIN,
+    MAIN_MENU_BUTTON_SUPPORT_DONATE,
+)
 from vpn_bot.db.analytics_models import WhitelistBypassFeedback
 from vpn_bot.db.models import User
 from vpn_bot.enums import KeyDelivery, VpnProtocol
-from vpn_bot.exceptions import (ContainerIssueError, PeerGenerationError,
-                                TooManyKeysError)
+from vpn_bot.exceptions import (
+    ContainerIssueError,
+    PeerGenerationError,
+    TooManyKeysError,
+)
 from vpn_bot.filters import AuthedFilter
 from vpn_bot.handlers.contact_admin import ContactStates
 from vpn_bot.handlers.delivery import deliver_secure_key
 from vpn_bot.handlers.report_problem import ReportProblemStates
-from vpn_bot.keyboards import (amnezia_other_protocols_kb,  # noqa: F401
-                               amnezia_protocols_kb, delivery_kb,
-                               instructions_after_text_kb,
-                               instructions_platform_kb,
-                               instructions_telegram_proxy_kb, key_apps_kb,
-                               main_menu_kb, protocols_kb,
-                               safeflow_provider_kb, support_submenu_kb,
-                               whitelist_bypass_kb,
-                               whitelist_instruction_view_kb,
-                               whitelist_platforms_kb, whitelist_vkturn_kb,
-                               xray_variants_kb)
+from vpn_bot.keyboards import amnezia_other_protocols_kb  # noqa: F401
+from vpn_bot.keyboards import (
+    amnezia_protocols_kb,
+    delivery_kb,
+    instructions_after_text_kb,
+    instructions_platform_kb,
+    instructions_telegram_proxy_kb,
+    key_apps_kb,
+    main_menu_kb,
+    protocols_kb,
+    safeflow_provider_kb,
+    support_submenu_kb,
+    whitelist_bypass_kb,
+    whitelist_instruction_view_kb,
+    whitelist_platforms_kb,
+    whitelist_vkturn_kb,
+    xray_variants_kb,
+)
 from vpn_bot.paths import resolved_guides_src_dir
 from vpn_bot.services.key_service import KeyService
 from vpn_bot.services.traffic_stats_service import TrafficStatsService
 from vpn_bot.services.vkturn_xray_service import build_vkturn_vless_bundle
-from vpn_bot.texts_whitelist_bypass import (VKTURN_TEST_INTRO_HTML,
-                                            VKTURN_VK_LINK,
-                                            WHITELIST_BYPASS_INTRO_HTML,
-                                            WHITELIST_INSTR_MENU_HTML,
-                                            WHITELIST_PLATFORM_CHUNKS)
+from vpn_bot.texts_whitelist_bypass import (
+    VKTURN_TEST_INTRO_HTML,
+    VKTURN_VK_LINK,
+    WHITELIST_BYPASS_INTRO_HTML,
+    WHITELIST_INSTR_MENU_HTML,
+    WHITELIST_PLATFORM_CHUNKS,
+)
 from vpn_bot.utils.text import split_telegram_message
 
 logger = logging.getLogger(__name__)
@@ -62,9 +81,7 @@ _not_in_contact = and_f(
     ~StateFilter(ReportProblemStates.waiting_other),
 )
 
-_CHOOSE_PROFILE_TEXT = (
-    "Выбор VPN провайдера"
-)
+_CHOOSE_PROFILE_TEXT = "Выбор VPN провайдера"
 
 _WAITING_GENERATION_TEXT = "⏳ Генерирую конфигурацию…"
 
@@ -187,13 +204,17 @@ async def gen_whitelist_test(cb: CallbackQuery) -> None:
 async def whitelist_vkturn_generate(cb: CallbackQuery) -> None:
     if isinstance(cb.message, Message):
         try:
-            await cb.message.edit_text("⏳ Генерирую ключ для Happ/v2RayTun + vk-turn…")  # noqa: E501
+            await cb.message.edit_text(
+                "⏳ Генерирую ключ для Happ/v2RayTun + vk-turn…"
+            )  # noqa: E501
         except TelegramBadRequest:
             pass
     await cb.answer()
 
     try:
-        host, peer, cmd, local_vless = build_vkturn_vless_bundle(VKTURN_VK_LINK)  # noqa: E501
+        host, peer, cmd, local_vless = build_vkturn_vless_bundle(
+            VKTURN_VK_LINK
+        )  # noqa: E501
     except ContainerIssueError as e:
         if isinstance(cb.message, Message):
             await cb.message.edit_text(
@@ -213,14 +234,14 @@ async def whitelist_vkturn_generate(cb: CallbackQuery) -> None:
     if isinstance(cb.message, Message):
         termux_stop = 'pkill -f "./client"\npgrep -af client'  # noqa: F841
         termux_bootstrap = (
-            "pkg update -y && pkg install -y curl && cd \"$HOME\" && "
+            'pkg update -y && pkg install -y curl && cd "$HOME" && '
             "curl -L -o client "
             "https://github.com/cacggghp/vk-turn-proxy/releases/latest/download/client-android-arm64 "  # noqa: E501
             f"&& chmod +x client && ./client {cmd}"
         )
         termux_fast = (
             "termux-wake-lock\n"
-            "pkill -f \"./client\" 2>/dev/null\n\n"
+            'pkill -f "./client" 2>/dev/null\n\n'
             f"./client {cmd.replace('-n 1', '-n 2')}"
         )
         termux_stop_one = 'pkill -f "./client"'
@@ -239,9 +260,9 @@ async def whitelist_vkturn_generate(cb: CallbackQuery) -> None:
             f"<code>{local_vless}</code>\n\n"
             "Порядок: сначала запустить Termux, вставить необходимые команды, дождаться "  # noqa: E501
             "<code>Established DTLS connection!</code>, потом включить профиль в Happ/v2RayTun.\n\n"  # noqa: E501
-            "Termux: <a href=\"https://play.google.com/store/apps/details?id=com.termux&amp;hl=ru\">"  # noqa: E501
+            'Termux: <a href="https://play.google.com/store/apps/details?id=com.termux&amp;hl=ru">'  # noqa: E501
             "https://play.google.com/store/apps/details?id=com.termux&amp;hl=ru</a>\n"  # noqa: E501
-            "Happ: <a href=\"https://play.google.com/store/apps/details?id=com.happproxy&amp;hl=ru\">"  # noqa: E501
+            'Happ: <a href="https://play.google.com/store/apps/details?id=com.happproxy&amp;hl=ru">'  # noqa: E501
             "https://play.google.com/store/apps/details?id=com.happproxy&amp;hl=ru</a>",  # noqa: E501
             parse_mode="HTML",
             link_preview_options=LinkPreviewOptions(is_disabled=True),
@@ -297,7 +318,9 @@ async def whitelist_platform_view(cb: CallbackQuery) -> None:
                 flat[page],
                 parse_mode="HTML",
                 link_preview_options=LinkPreviewOptions(is_disabled=True),
-                reply_markup=whitelist_instruction_view_kb(slug, page, len(flat)),  # noqa: E501
+                reply_markup=whitelist_instruction_view_kb(
+                    slug, page, len(flat)
+                ),  # noqa: E501
             )
         except TelegramBadRequest as e:
             if "message is not modified" in str(e).lower():
@@ -313,7 +336,9 @@ async def whitelist_pagination_noop(cb: CallbackQuery) -> None:
 
 
 @router.callback_query(_auth, F.data.in_({"wl:ok", "wl:bad"}))
-async def whitelist_bypass_feedback(cb: CallbackQuery, session_analytics) -> None:  # noqa: E501
+async def whitelist_bypass_feedback(
+    cb: CallbackQuery, session_analytics
+) -> None:  # noqa: E501
     works = cb.data == "wl:ok"
     session_analytics.add(
         WhitelistBypassFeedback(created_at=datetime.now(UTC), works=works)
@@ -403,7 +428,9 @@ async def gen_cancel(cb: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.callback_query(_auth, F.data.startswith("gen:deliv:"))
-async def gen_deliver(cb: CallbackQuery, state: FSMContext, db_user: User, session) -> None:  # noqa: C901, E501
+async def gen_deliver(
+    cb: CallbackQuery, state: FSMContext, db_user: User, session
+) -> None:  # noqa: C901, E501
     data = await state.get_data()
     proto_raw = data.get("protocol")
     if not proto_raw:
@@ -522,7 +549,9 @@ async def instructions_entry(message: Message) -> None:
     )
 
 
-@router.message(_auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_SUPPORT_DONATE)  # noqa: E501
+@router.message(
+    _auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_SUPPORT_DONATE
+)  # noqa: E501
 async def support_submenu_open(message: Message) -> None:
     await message.answer(
         "Техподдержка и донат. Выберите действие.",
@@ -569,12 +598,20 @@ INSTRUCTIONS = {
     ),
 }
 
-_GUIDE_PDF_NAMES = {"ios": "ios.pdf", "android": "android.pdf", "win": "windows.pdf"}  # noqa: E501
+_GUIDE_PDF_NAMES = {
+    "ios": "ios.pdf",
+    "android": "android.pdf",
+    "win": "windows.pdf",
+}  # noqa: E501
 
 
 @router.message(_auth, _not_in_contact, Command("mystats"))
-async def cmd_mystats(message: Message, db_user: User, session_analytics) -> None:  # noqa: E501
-    lines, chart_buf = await TrafficStatsService(session_analytics).user_weekly_report(  # noqa: E501
+async def cmd_mystats(
+    message: Message, db_user: User, session_analytics
+) -> None:  # noqa: E501
+    lines, chart_buf = await TrafficStatsService(
+        session_analytics
+    ).user_weekly_report(  # noqa: E501
         db_user.id
     )
     text = "\n".join(lines)
@@ -596,7 +633,9 @@ async def instructions_send_pdf(cb: CallbackQuery) -> None:
     plat = parts[2]
     pdf_name = _GUIDE_PDF_NAMES.get(plat)
     if not pdf_name or not isinstance(cb.message, Message):
-        await cb.answer("Гайд для этой платформы не настроен.", show_alert=True)  # noqa: E501
+        await cb.answer(
+            "Гайд для этой платформы не настроен.", show_alert=True
+        )  # noqa: E501
         return
     path = resolved_guides_src_dir() / pdf_name
     if not path.is_file():
@@ -634,7 +673,7 @@ async def instructions_pick(cb: CallbackQuery) -> None:
                 "1) установить VPN\n"
                 "2) Откройте настройки VPN в настройках системы.\n"
                 "3) Включите опцию постоянного подключения (Always-on / Всегда включен).\n"  # noqa: E501
-                "4) В настройках приложения выберите \"маршрутизация\" или \"туннелирование\", выберите: приложения:\n"  # noqa: E501
+                '4) В настройках приложения выберите "маршрутизация" или "туннелирование", выберите: приложения:\n'  # noqa: E501
                 "-  которые будут идти только через VPN, или те, которые будут идти без VPN,\n"  # noqa: E501
                 "- или выберите, чтобы весь трафик шёл через VPN.\n"
                 "5) Сохраните настройки",
@@ -661,11 +700,7 @@ async def instructions_pick(cb: CallbackQuery) -> None:
         await cb.answer()
         return
     text = INSTRUCTIONS.get(key, "Раздел в разработке.")
-    markup = (
-        instructions_after_text_kb(key)
-        if key in _GUIDE_PDF_NAMES
-        else None
-    )
+    markup = instructions_after_text_kb(key) if key in _GUIDE_PDF_NAMES else None
     if isinstance(cb.message, Message):
         await cb.message.edit_text(text, reply_markup=markup)
     await cb.answer()

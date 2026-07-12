@@ -1,8 +1,3 @@
-"""Тесты репозитория пользователей.
-
-Модуль проверяет специфичные методы UserRepository.
-"""
-
 import pytest
 
 from app.db.repositories.user import UserRepository
@@ -10,14 +5,6 @@ from app.db.repositories.user import UserRepository
 
 @pytest.mark.asyncio
 async def test_user_repository_get_by_tg_id(async_session):
-    """Тест поиска пользователя по Telegram ID.
-
-    Проверяет успешное нахождение пользователя и возврат None,
-    если пользователя не существует.
-
-    Args:
-        async_session: Фикстура асинхронной сессии БД.
-    """
     repo = UserRepository(async_session)
 
     # 1. Create user

@@ -8,9 +8,12 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from vpn_bot.db.models import (DonationAlertsSubscription,
-                               StarDonationSubscription, StarPayment,
-                               SupportFunnelEvent)
+from vpn_bot.db.models import (
+    DonationAlertsSubscription,
+    StarDonationSubscription,
+    StarPayment,
+    SupportFunnelEvent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +44,9 @@ async def log_support_funnel_event(
     try:
         session.add(SupportFunnelEvent(user_id=user_id, event=kind))
     except Exception:
-        logger.exception("log_support_funnel_event failed kind=%s user=%s", kind, user_id)  # noqa: E501
+        logger.exception(
+            "log_support_funnel_event failed kind=%s user=%s", kind, user_id
+        )  # noqa: E501
 
 
 async def _counts_by_event(
@@ -54,7 +59,8 @@ async def _counts_by_event(
             SupportFunnelEvent.event,
             func.count().label("n"),
             func.count(func.distinct(uid)).label("nu"),
-        ).where(
+        )
+        .where(
             SupportFunnelEvent.created_at >= start,
             SupportFunnelEvent.created_at < end,
         )
@@ -72,9 +78,7 @@ async def support_funnel_digest_lines(
         return by.get(kind, (0, 0))
 
     o_n, o_u = c(SupportFunnelKind.OPEN)
-    inner_total = sum(
-        n for k, (n, _) in by.items() if k != SupportFunnelKind.OPEN
-    )
+    inner_total = sum(n for k, (n, _) in by.items() if k != SupportFunnelKind.OPEN)
 
     lines = [
         "",

@@ -2,8 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from sqlalchemy import event, text
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from vpn_bot.config import get_settings
 from vpn_bot.db.base import Base
@@ -27,6 +26,7 @@ def _sqlite_on_connect(dbapi_conn, connection_record) -> None:
         cur.execute("PRAGMA busy_timeout=30000")
     finally:
         cur.close()
+
 
 async_session_maker = async_sessionmaker(  # noqa: E305
     engine,
@@ -77,6 +77,8 @@ async def init_db() -> None:
                         "WHERE last_activity_at IS NULL"
                     )
                 )
+
+
 @asynccontextmanager  # noqa: E302
 async def session_scope() -> AsyncIterator[AsyncSession]:
     async with async_session_maker() as session:

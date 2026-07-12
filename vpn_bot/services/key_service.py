@@ -10,8 +10,10 @@ from vpn_bot.constants import AMNEZIA_WG_RATE_LIMIT_HOURS
 from vpn_bot.db.models import User, VpnKey
 from vpn_bot.enums import VpnProtocol
 from vpn_bot.exceptions import TooManyKeysError
-from vpn_bot.services.protocol_generators import (GeneratedVpnConfig,
-                                                  generate_for_protocol)
+from vpn_bot.services.protocol_generators import (
+    GeneratedVpnConfig,
+    generate_for_protocol,
+)
 
 
 class KeyService:
@@ -40,7 +42,10 @@ class KeyService:
 
     async def deactivate_user_keys(self, user_id: int) -> None:
         from vpn_bot.services.revocation_service import revoke_key_on_server
-        r = await self._s.execute(select(VpnKey).where(VpnKey.user_id == user_id, VpnKey.is_active.is_(True)))  # noqa: E501
+
+        r = await self._s.execute(
+            select(VpnKey).where(VpnKey.user_id == user_id, VpnKey.is_active.is_(True))
+        )  # noqa: E501
         keys = r.scalars().all()
         for k in keys:
             await revoke_key_on_server(k)
@@ -53,17 +58,24 @@ class KeyService:
 
     async def deactivate_all_active_keys(self) -> None:
         from vpn_bot.services.revocation_service import revoke_key_on_server
-        r = await self._s.execute(select(VpnKey).where(VpnKey.is_active.is_(True)))  # noqa: E501
+
+        r = await self._s.execute(
+            select(VpnKey).where(VpnKey.is_active.is_(True))
+        )  # noqa: E501
         keys = r.scalars().all()
         for k in keys:
             await revoke_key_on_server(k)
         await self._s.execute(
-            update(VpnKey).where(VpnKey.is_active.is_(True)).values(is_active=False)  # noqa: E501
+            update(VpnKey)
+            .where(VpnKey.is_active.is_(True))
+            .values(is_active=False)  # noqa: E501
         )
         await self._s.flush()
 
     async def count_amnezia_keys_last_24h(self, user_id: int) -> int:
-        since = datetime.now(UTC) - timedelta(hours=AMNEZIA_WG_RATE_LIMIT_HOURS)  # noqa: E501
+        since = datetime.now(UTC) - timedelta(
+            hours=AMNEZIA_WG_RATE_LIMIT_HOURS
+        )  # noqa: E501
         r = await self._s.execute(
             select(func.count())
             .select_from(VpnKey)
@@ -79,6 +91,7 @@ class KeyService:
         self, user_id: int, protocol: VpnProtocol
     ) -> None:
         from vpn_bot.services.revocation_service import revoke_key_on_server
+
         r = await self._s.execute(
             select(VpnKey).where(
                 VpnKey.user_id == user_id,
@@ -100,10 +113,14 @@ class KeyService:
         )
         await self._s.flush()
 
-    async def create_key(self, user: User, protocol: VpnProtocol, custom_name: str | None = None) -> VpnKey:  # noqa: E501
+    async def create_key(
+        self, user: User, protocol: VpnProtocol, custom_name: str | None = None
+    ) -> VpnKey:  # noqa: E501
         hint = custom_name or user.tg_username or str(user.tg_id)
         cfg = await generate_for_protocol(protocol, hint)
-        return await self.create_key_from_generated(user, protocol, cfg, custom_name)  # noqa: E501
+        return await self.create_key_from_generated(
+            user, protocol, cfg, custom_name
+        )  # noqa: E501
 
     async def create_key_from_generated(
         self,
@@ -128,7 +145,9 @@ class KeyService:
         await self._s.flush()
         return row
 
-    async def generate_one(self, user: User, protocol: VpnProtocol, custom_name: str | None = None) -> VpnKey:  # noqa: E501
+    async def generate_one(
+        self, user: User, protocol: VpnProtocol, custom_name: str | None = None
+    ) -> VpnKey:  # noqa: E501
         settings = get_settings()
         if (
             protocol == VpnProtocol.AMNEZIA_WG
@@ -165,4 +184,6 @@ class KeyService:
                 raise TooManyKeysError(lim, AMNEZIA_WG_RATE_LIMIT_HOURS)
         if settings.replace_active_key_on_new and not custom_name:
             await self.deactivate_user_keys_for_protocol(user.id, protocol)
-        return await self.create_key_from_generated(user, protocol, cfg, custom_name)  # noqa: E501
+        return await self.create_key_from_generated(
+            user, protocol, cfg, custom_name
+        )  # noqa: E501

@@ -57,7 +57,9 @@ async def _process_da_due(bot: Bot) -> None:
     from datetime import UTC, datetime
 
     now = datetime.now(UTC)
-    url = get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"  # noqa: E501
+    url = (
+        get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"
+    )  # noqa: E501
     async with session_scope() as session:
         due = await DonationAlertsReminderService(session).list_due(now)
     for sub_id, tg_id in due:

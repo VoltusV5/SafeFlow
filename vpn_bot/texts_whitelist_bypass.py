@@ -55,8 +55,7 @@ WHITELIST_PLATFORM_MENU: tuple[tuple[str, str], ...] = (
 )
 
 WHITELIST_INSTR_MENU_HTML = (
-    "<b>Инструкции</b>\n\n"
-    "Выберите систему — текст покажется в этом же сообщении."
+    "<b>Инструкции</b>\n\n" "Выберите систему — текст покажется в этом же сообщении."
 )
 
 VKTURN_TEST_INTRO_HTML = (
@@ -64,7 +63,9 @@ VKTURN_TEST_INTRO_HTML = (
     "Бот выдаст команду запуска Termux-клиента и локальную VLESS-ссылку для Happ/v2RayTun."  # noqa: E501
 )
 
-VKTURN_VK_LINK = "https://vk.com/call/join/Sduu0nMXydK0Fy4ybm9ULEb4lQqGEDUXN1O0waTfl5o"  # noqa: E501
+VKTURN_VK_LINK = (
+    "https://vk.com/call/join/Sduu0nMXydK0Fy4ybm9ULEb4lQqGEDUXN1O0waTfl5o"  # noqa: E501
+)
 
 # Сообщения по платформе: список частей (каждая в пределах лимита Telegram)
 WHITELIST_PLATFORM_CHUNKS: dict[str, list[str]] = {
@@ -127,7 +128,7 @@ WHITELIST_PLATFORM_CHUNKS: dict[str, list[str]] = {
         (
             "<b>Smart TV — Android TV / Google TV</b>\n\n"
             "1. Установите <b>v2rayTun</b> из Google Play на ТВ. Если магазина нет — установите APK вручную.\n"  # noqa: E501
-            "2. Откройте на ТВ сайт <a href=\"https://hynet.space\">hynet.space</a> в браузере "  # noqa: E501
+            '2. Откройте на ТВ сайт <a href="https://hynet.space">hynet.space</a> в браузере '  # noqa: E501
             "(при необходимости установите браузер, например Яндекс Браузер для ТВ).\n"  # noqa: E501
             "Авторизуйтесь по QR (Войти → по QR-коду). Выберите сервер → «Копировать» на нужном ключе (например VMess).\n"  # noqa: E501
             "В v2rayTun: Управление → Импорт из буфера обмена.\n"

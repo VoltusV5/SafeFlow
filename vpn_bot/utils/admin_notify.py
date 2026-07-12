@@ -22,9 +22,7 @@ def send_message_to_admins(text: str) -> None:
     body = (text or "")[:4000]
     for aid in s.admin_ids:
         try:
-            data = urllib.parse.urlencode(
-                {"chat_id": str(aid), "text": body}
-            ).encode()
+            data = urllib.parse.urlencode({"chat_id": str(aid), "text": body}).encode()
             req = urllib.request.Request(
                 f"https://api.telegram.org/bot{token}/sendMessage",
                 data=data,

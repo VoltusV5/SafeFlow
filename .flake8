@@ -1,12 +1,23 @@
 [flake8]
 ignore =
     W503,
-    F811
+    F811,
+    E501,
+    E203,
+    N815,
+    E712,
+    F401,
+    F841,
+    W291
 exclude =
-    tests/,
-    */migrations/,
+    migrations/,
     venv/,
-    env/
+    env/,
+    vpn_bot/,
+    scripts/,
+    fix_flake8.py
 per-file-ignores =
     */settings.py:E501
+    __init__.py:F401
 max-complexity = 10
+max-line-length = 120

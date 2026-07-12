@@ -58,25 +58,27 @@ vpn-telegram-bot/
 - `[x]` TDD: Тесты для Payment, Key, Server, Promocode Repositories -> Их реализация.
 
 ## Этап 4: Архитектура (UoW, DTO, Enums) и Бизнес-логика (Service Layer)
-- `[ ]` Архитектура: Реализация паттерна Unit Of Work (`app/db/uow.py`) и удаление жестких `await self.session.commit()` из методов репозиториев для обеспечения консистентности транзакций.
-- `[ ]` Архитектура: Создание Pydantic схем (DTO) для обмена данными (`app/schemas/`).
-- `[ ]` Архитектура: Замена строковых типов на ENUM в моделях БД и применение миграции.
-- `[ ]` TDD: Тесты реферальных начислений и банов -> Реализация `UserService`.
-- `[ ]` TDD: Тесты расчетов тарифов, применения промокодов и возвратов -> Реализация `BillingService`.
-- `[ ]` TDD: Тесты аллокации IP/UUID и валидации серверов -> Реализация `VpnManagerService`.
+- `[x]` Архитектура: Реализация паттерна Unit Of Work (`app/db/uow.py`) и удаление жестких `await self.session.commit()` из методов репозиториев для обеспечения консистентности транзакций.
+- `[x]` Архитектура: Создание Pydantic схем (DTO) для обмена данными (`app/schemas/`).
+- `[x]` Архитектура: Замена строковых типов на ENUM в моделях БД и применение миграции.
+- `[x]` TDD: Тесты реферальных начислений и банов -> Реализация `UserService`.
+- `[x]` TDD: Тесты расчетов тарифов, применения промокодов и возвратов -> Реализация `BillingService`.
+- `[x]` TDD: Тесты аллокации IP/UUID и валидации серверов -> Реализация `VpnManagerService`.
 
-## Этап 5: Фоновые задачи (Background Tasks)
-- `[ ]` Настройка брокера задач (Redis + TaskIQ/Arq/APScheduler).
-- `[ ]` Задача: Напоминание об истечении подписки (за 3 дня).
-- `[ ]` Задача: Удаление ключей (Grace Period 24 часа после истечения).
-- `[ ]` Задача: Reconciliation (синхронизация зависших `pending_sync` ключей).
+## Этап 5: Фоновые задачи и Мультиавторизация
+- `[x]` БД: Миграция `User` (поля `email`, `hashed_password`, `notification_preference`, `tg_id` nullable).
+- `[x]` Архитектура: Паттерн "Стратегия" для уведомлений (Интерфейс + Telegram + Email).
+- `[x]` Настройка брокера задач (Redis + `arq` worker).
+- `[x]` Задача: Напоминание об истечении подписки (за 3 дня) через Стратегию.
+- `[x]` Задача: Удаление ключей (Grace Period 24 часа после истечения).
+- `[x]` Задача: Reconciliation (синхронизация зависших `pending_sync` ключей).
 
 ## Этап 6: REST API Бэкенд (Transport Layer - FastAPI)
-- `[ ]` Инициализация `FastAPI` (`app/main.py`) и инъекция сессий БД (Dependencies).
-- `[ ]` Настройка **CORS Middleware** (Cross-Origin Resource Sharing) для связи с Frontend и TWA.
-- `[ ]` TDD: Тесты эндпоинтов авторизации Telegram Login -> Эндпоинты Auth.
-- `[ ]` TDD: Тесты обработки вебхуков (Payok/AAIO) -> Реализация `app/api/routes/payments.py`.
-- `[ ]` TDD: Тесты эндпоинтов управления ключами -> Реализация REST API для Фронтенда.
+- `[x]` Инициализация `FastAPI` (`app/main.py`) и инъекция сессий БД (Dependencies).
+- `[x]` Настройка **CORS Middleware** (Cross-Origin Resource Sharing) для связи с Frontend и TWA.
+- `[x]` TDD: Тесты эндпоинтов авторизации Telegram Login -> Эндпоинты Auth.
+- `[x]` TDD: Тесты обработки вебхуков (AAIO) -> Реализация `app/api/routes/payments.py`.
+- `[x]` TDD: Тесты эндпоинтов управления ключами -> Реализация REST API для Фронтенда.
 
 ## Этап 7: Telegram Бот (Команды и Кнопки)
 - `[ ]` Инициализация Бота и Dispatcher с `RedisStorage` (`app/bot/main.py`).

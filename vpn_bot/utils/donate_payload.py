@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from vpn_bot.constants import (MAX_TELEGRAM_STARS_DONATION,
-                               MIN_TELEGRAM_STARS_DONATION)
+from vpn_bot.constants import MAX_TELEGRAM_STARS_DONATION, MIN_TELEGRAM_STARS_DONATION
 
 
 def build_star_invoice_payload(monthly: bool, stars: int) -> str:
@@ -16,7 +15,9 @@ def parse_star_invoice_payload(raw: str) -> tuple[bool, int] | None:
         stars = int(parts[2])
     except ValueError:
         return None
-    if stars < MIN_TELEGRAM_STARS_DONATION or stars > MAX_TELEGRAM_STARS_DONATION:  # noqa: E501
+    if (
+        stars < MIN_TELEGRAM_STARS_DONATION or stars > MAX_TELEGRAM_STARS_DONATION
+    ):  # noqa: E501
         return None
     return (parts[1] == "m", stars)
 
@@ -28,6 +29,7 @@ def reminder_text(stars: int) -> str:
         "Следующее напоминание придёт не раньше чем через месяц. "
         "Отключить рассылку: кнопка «Отключить напоминания» или /stars_remind_off."  # noqa: E501
     )
+
 
 def da_reminder_text() -> str:  # noqa: E302
     return (

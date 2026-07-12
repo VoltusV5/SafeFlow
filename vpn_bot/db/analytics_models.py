@@ -4,8 +4,16 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import (BigInteger, Date, DateTime, Float, Index, Integer,  # noqa: F401, E501
-                        Text, func)
+from sqlalchemy import (
+    BigInteger,
+    Date,
+    DateTime,
+    Float,  # noqa: F401, E501
+    Index,
+    Integer,
+    Text,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from vpn_bot.db.analytics_base import BaseAnalytics
@@ -22,13 +30,17 @@ class TrafficLog(BaseAnalytics):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer(), index=True)
-    logged_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)  # noqa: E501
+    logged_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), index=True
+    )  # noqa: E501
     rx_bytes: Mapped[int] = mapped_column(BigInteger(), default=0)
     tx_bytes: Mapped[int] = mapped_column(BigInteger(), default=0)
     rx_delta: Mapped[int | None] = mapped_column(BigInteger(), nullable=True)
     tx_delta: Mapped[int | None] = mapped_column(BigInteger(), nullable=True)
     latest_handshake: Mapped[int] = mapped_column(Integer(), default=0)
-    session_duration_sec: Mapped[int | None] = mapped_column(Integer(), nullable=True)  # noqa: E501
+    session_duration_sec: Mapped[int | None] = mapped_column(
+        Integer(), nullable=True
+    )  # noqa: E501
 
 
 class DailyStats(BaseAnalytics):
@@ -51,7 +63,9 @@ class HostMetricSample(BaseAnalytics):
     __tablename__ = "host_metric_samples"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    logged_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)  # noqa: E501
+    logged_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), index=True
+    )  # noqa: E501
     cpu_percent: Mapped[float] = mapped_column(Float())
     ram_percent: Mapped[float] = mapped_column(Float())
     net_rx_mbps: Mapped[float | None] = mapped_column(Float(), nullable=True)
@@ -64,8 +78,12 @@ class WhitelistBypassFeedback(BaseAnalytics):
     __tablename__ = "whitelist_bypass_feedback"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)  # noqa: E501
-    works: Mapped[bool] = mapped_column()  # True — «работает при белых», False — «не работает»  # noqa: E501
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), index=True
+    )  # noqa: E501
+    works: Mapped[bool] = (
+        mapped_column()
+    )  # True — «работает при белых», False — «не работает»  # noqa: E501
 
 
 class XrayTrafficLog(BaseAnalytics):
@@ -79,9 +97,15 @@ class XrayTrafficLog(BaseAnalytics):
     user_id: Mapped[int] = mapped_column(Integer(), index=True)
     protocol: Mapped[str] = mapped_column(Text())
     email: Mapped[str] = mapped_column(Text(), index=True)
-    logged_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)  # noqa: E501
+    logged_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), index=True
+    )  # noqa: E501
     uplink_bytes: Mapped[int] = mapped_column(BigInteger(), default=0)
     downlink_bytes: Mapped[int] = mapped_column(BigInteger(), default=0)
-    uplink_delta: Mapped[int | None] = mapped_column(BigInteger(), nullable=True)  # noqa: E501
-    downlink_delta: Mapped[int | None] = mapped_column(BigInteger(), nullable=True)  # noqa: E501
+    uplink_delta: Mapped[int | None] = mapped_column(
+        BigInteger(), nullable=True
+    )  # noqa: E501
+    downlink_delta: Mapped[int | None] = mapped_column(
+        BigInteger(), nullable=True
+    )  # noqa: E501
     online_count: Mapped[int] = mapped_column(Integer(), default=0)

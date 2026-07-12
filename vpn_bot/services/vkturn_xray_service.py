@@ -13,14 +13,20 @@ from vpn_bot.services.amnezia_protocols import issue_wireguard_client_conf_text
 
 _VKTURN_PROXY_CONTAINER = "vpn-vk-turn-proxy"
 _VKTURN_XRAY_CONTAINER = "vpn-vkturn-xray"
-_VKTURN_XRAY_CONFIG_PATH = Path("/root/vpn-telegram-bot/deploy/vkturn-xray/config.json")  # noqa: E501
+_VKTURN_XRAY_CONFIG_PATH = Path(
+    "/root/vpn-telegram-bot/deploy/vkturn-xray/config.json"
+)  # noqa: E501
 
 
 def _run(cmd: list[str], *, timeout: int = 30) -> str:
-    p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)  # noqa: E501
+    p = subprocess.run(
+        cmd, capture_output=True, text=True, timeout=timeout, check=False
+    )  # noqa: E501
     if p.returncode != 0:
         err = (p.stderr or p.stdout or "").strip()
-        raise ContainerIssueError(err[:700] or f"command failed: {' '.join(cmd)}")  # noqa: E501
+        raise ContainerIssueError(
+            err[:700] or f"command failed: {' '.join(cmd)}"
+        )  # noqa: E501
     return (p.stdout or "").strip()
 
 
@@ -42,7 +48,13 @@ def _resolve_host() -> str:
 def build_vkturn_wireguard_command(vk_link: str) -> tuple[str, str, str]:
     """Возвращает короткую команду запуска client для WireGuard-режима."""
     status = _run(
-        ["docker", "inspect", "-f", "{{.State.Status}}", _VKTURN_PROXY_CONTAINER],  # noqa: E501
+        [
+            "docker",
+            "inspect",
+            "-f",
+            "{{.State.Status}}",
+            _VKTURN_PROXY_CONTAINER,
+        ],  # noqa: E501
         timeout=20,
     )
     if status != "running":
@@ -81,7 +93,13 @@ def build_vkturn_wireguard_conf() -> str:
 def build_vkturn_vless_bundle(vk_link: str) -> tuple[str, str, str, str]:
     """Добавляет UUID в локальный Xray и возвращает команды для Termux/VLESS-клиента."""  # noqa: E501
     status = _run(
-        ["docker", "inspect", "-f", "{{.State.Status}}", _VKTURN_XRAY_CONTAINER],  # noqa: E501
+        [
+            "docker",
+            "inspect",
+            "-f",
+            "{{.State.Status}}",
+            _VKTURN_XRAY_CONTAINER,
+        ],  # noqa: E501
         timeout=20,
     )
     if status != "running":
@@ -89,23 +107,37 @@ def build_vkturn_vless_bundle(vk_link: str) -> tuple[str, str, str, str]:
             f"vkturn-xray контейнер не запущен: {_VKTURN_XRAY_CONTAINER} ({status})"  # noqa: E501
         )
     if not _VKTURN_XRAY_CONFIG_PATH.exists():
-        raise ContainerIssueError(f"Файл конфига не найден: {_VKTURN_XRAY_CONFIG_PATH}")  # noqa: E501
+        raise ContainerIssueError(
+            f"Файл конфига не найден: {_VKTURN_XRAY_CONFIG_PATH}"
+        )  # noqa: E501
 
     with open(_VKTURN_XRAY_CONFIG_PATH, "r", encoding="utf-8") as f:
         doc = json.load(f)
     inbounds = doc.get("inbounds", [])
     if not inbounds:
-        raise ContainerIssueError("vkturn-xray: отсутствуют inbounds в config.json")  # noqa: E501
+        raise ContainerIssueError(
+            "vkturn-xray: отсутствуют inbounds в config.json"
+        )  # noqa: E501
     settings = inbounds[0].setdefault("settings", {})
     clients = settings.setdefault("clients", [])
     uid = str(uuid.uuid4())
-    clients.append({"id": uid, "level": 0, "email": f"vkturn-{uid[:8]}@vpn.local"})  # noqa: E501
+    clients.append(
+        {"id": uid, "level": 0, "email": f"vkturn-{uid[:8]}@vpn.local"}
+    )  # noqa: E501
 
     with open(_VKTURN_XRAY_CONFIG_PATH, "w", encoding="utf-8") as f:
         f.write(json.dumps(doc, ensure_ascii=False, indent=2) + "\n")
 
     _run(
-        ["docker", "exec", _VKTURN_XRAY_CONTAINER, "xray", "-test", "-config", "/etc/xray/config.json"],  # noqa: E501
+        [
+            "docker",
+            "exec",
+            _VKTURN_XRAY_CONTAINER,
+            "xray",
+            "-test",
+            "-config",
+            "/etc/xray/config.json",
+        ],  # noqa: E501
         timeout=30,
     )
     subprocess.run(["docker", "restart", _VKTURN_XRAY_CONTAINER], check=False)

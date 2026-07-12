@@ -10,7 +10,9 @@ router = Router(name="common")
 
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, db_user: User, state: FSMContext) -> None:  # noqa: E501
+async def cmd_start(
+    message: Message, db_user: User, state: FSMContext
+) -> None:  # noqa: E501
     await state.clear()
     if db_user.password_entered:
         await message.answer(

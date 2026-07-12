@@ -14,9 +14,11 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
-from vpn_bot.amnezia_vpn_url import (amnezia_awg_conf_to_vpn_url,
-                                     build_awg_last_config_object,
-                                     protocols_document_to_vpn_url)
+from vpn_bot.amnezia_vpn_url import (
+    amnezia_awg_conf_to_vpn_url,
+    build_awg_last_config_object,
+    protocols_document_to_vpn_url,
+)
 from vpn_bot.config import Settings
 from vpn_bot.enums import VpnProtocol
 from vpn_bot.exceptions import ContainerIssueError
@@ -51,7 +53,9 @@ def _desc(s: Settings) -> str:
     return (s.amnezia_share_description or "SafeFlow").strip() or "SafeFlow"
 
 
-def _run(cmd: list[str], *, input_bytes: bytes | None = None, timeout: int = 180) -> str:  # noqa: E501
+def _run(
+    cmd: list[str], *, input_bytes: bytes | None = None, timeout: int = 180
+) -> str:  # noqa: E501
     r = subprocess.run(
         cmd,
         capture_output=True,
@@ -66,7 +70,9 @@ def _run(cmd: list[str], *, input_bytes: bytes | None = None, timeout: int = 180
 
 
 def _dex_sh(container: str, script: str, *, timeout: int = 180) -> str:
-    return _run(["docker", "exec", container, "sh", "-c", script], timeout=timeout)  # noqa: E501
+    return _run(
+        ["docker", "exec", container, "sh", "-c", script], timeout=timeout
+    )  # noqa: E501
 
 
 def _dex_cat_bin(container: str, path: str) -> bytes:
@@ -78,7 +84,8 @@ def _dex_cat_bin(container: str, path: str) -> bytes:
     )
     if r.returncode != 0:
         raise ContainerIssueError(
-            (r.stderr or b"").decode(errors="replace")[:400] or f"нет файла {path}"  # noqa: E501
+            (r.stderr or b"").decode(errors="replace")[:400]
+            or f"нет файла {path}"  # noqa: E501
         )
     return r.stdout
 
@@ -93,7 +100,8 @@ def _write_container_path(container: str, path: str, data: bytes) -> None:
     )
     if r.returncode != 0:
         raise ContainerIssueError(
-            (r.stderr or b"").decode(errors="replace")[:500] or "запись в контейнер не удалась"  # noqa: E501
+            (r.stderr or b"").decode(errors="replace")[:500]
+            or "запись в контейнер не удалась"  # noqa: E501
         )
 
 
@@ -114,7 +122,9 @@ def _send_xray_hup(container: str) -> None:
     _dex_sh(container, "killall -HUP xray", timeout=30)
 
 
-def _verify_xray_inbound_listening(container: str, port: int, *, timeout_sec: int = 12) -> None:  # noqa: E501
+def _verify_xray_inbound_listening(
+    container: str, port: int, *, timeout_sec: int = 12
+) -> None:  # noqa: E501
     """
     Проверяет, что Xray слушает нужный TCP-порт внутри контейнера.
     Смотрим /proc/net/tcp{,6}: state=0A (LISTEN), local_port == port.
@@ -212,16 +222,22 @@ def _provision_plain_wireguard_client(
         ).strip()
         if not psk:
             raise ContainerIssueError("Не прочитан PresharedKey из wg0.conf")
-        spub = _dex_sh(ctr, f"wg show {iface} | awk '/public key:/{{print $3}}'").strip()  # noqa: E501
+        spub = _dex_sh(
+            ctr, f"wg show {iface} | awk '/public key:/{{print $3}}'"
+        ).strip()  # noqa: E501
         if not spub:
             raise ContainerIssueError("wg show: нет public key сервера")
 
         priv = _dex_sh(ctr, "wg genkey").strip().replace("\r", "")
-        pub = _run(
-            ["docker", "exec", "-i", ctr, "wg", "pubkey"],
-            input_bytes=(priv + "\n").encode(),
-            timeout=60,
-        ).strip().replace("\r", "")
+        pub = (
+            _run(
+                ["docker", "exec", "-i", ctr, "wg", "pubkey"],
+                input_bytes=(priv + "\n").encode(),
+                timeout=60,
+            )
+            .strip()
+            .replace("\r", "")
+        )
 
         used_out = _dex_sh(
             ctr,
@@ -309,7 +325,10 @@ def issue_wireguard_client_conf_text(s: Settings) -> str:
 
 
 def _normalize_pem_block(s: str) -> str:
-    return "\n".join(line.rstrip() for line in s.replace("\r\n", "\n").replace("\r", "\n").splitlines()).strip()  # noqa: E501
+    return "\n".join(
+        line.rstrip()
+        for line in s.replace("\r\n", "\n").replace("\r", "\n").splitlines()
+    ).strip()  # noqa: E501
 
 
 def _build_openvpn_ovpn(
@@ -332,11 +351,7 @@ def _build_openvpn_ovpn(
         _normalize_pem_block(key),
         _normalize_pem_block(ta),
     )
-    ta_block = (
-        f"<tls-auth>\n{ta}\n</tls-auth>\n"
-        if ta
-        else ""
-    )
+    ta_block = f"<tls-auth>\n{ta}\n</tls-auth>\n" if ta else ""
     # Как у сервера Amnezia: data-ciphers + cipher (обязательно для OpenVPN 2.5+ при data-ciphers на сервере).  # noqa: E501
     # block-outside-dns убран — ломает подключение в части клиентов Amnezia на Android/iOS.  # noqa: E501
     return (
@@ -376,7 +391,9 @@ def _build_openvpn_ovpn(
     )
 
 
-def _easyrsa_issue(container: str, client_id: str) -> tuple[str, str, str, str]:  # noqa: E501
+def _easyrsa_issue(
+    container: str, client_id: str
+) -> tuple[str, str, str, str]:  # noqa: E501
     base = "/opt/amnezia/openvpn"
     pki = f"{base}/pki"
     _dex_sh(
@@ -386,8 +403,12 @@ def _easyrsa_issue(container: str, client_id: str) -> tuple[str, str, str, str]:
         timeout=300,
     )
     ca = _dex_cat_bin(container, f"{base}/ca.crt").decode(errors="replace")
-    crt = _dex_cat_bin(container, f"{pki}/issued/{client_id}.crt").decode(errors="replace")  # noqa: E501
-    key = _dex_cat_bin(container, f"{pki}/private/{client_id}.key").decode(errors="replace")  # noqa: E501
+    crt = _dex_cat_bin(container, f"{pki}/issued/{client_id}.crt").decode(
+        errors="replace"
+    )  # noqa: E501
+    key = _dex_cat_bin(container, f"{pki}/private/{client_id}.key").decode(
+        errors="replace"
+    )  # noqa: E501
     ta = _dex_cat_bin(container, f"{base}/ta.key").decode(errors="replace")
     return ca, crt, key, ta
 
@@ -436,15 +457,25 @@ def issue_openvpn_cloak_vpn_url(s: Settings) -> tuple[str, str]:
     ck = json.loads(ck_raw)
     redir = str(ck.get("RedirAddr") or "tile.openstreetmap.org")
 
-    cloak_pub = _dex_cat_bin(ctr, "/opt/amnezia/cloak/cloak_public.key").decode().strip()  # noqa: E501
-    bypass_uid = _dex_cat_bin(ctr, "/opt/amnezia/cloak/cloak_bypass_uid.key").decode().strip()  # noqa: E501
+    cloak_pub = (
+        _dex_cat_bin(ctr, "/opt/amnezia/cloak/cloak_public.key").decode().strip()
+    )  # noqa: E501
+    bypass_uid = (
+        _dex_cat_bin(ctr, "/opt/amnezia/cloak/cloak_bypass_uid.key").decode().strip()
+    )  # noqa: E501
 
-    ss_raw = _dex_cat_bin(ctr, "/opt/amnezia/shadowsocks/ss-config.json").decode()  # noqa: E501
+    ss_raw = _dex_cat_bin(
+        ctr, "/opt/amnezia/shadowsocks/ss-config.json"
+    ).decode()  # noqa: E501
     ssj = json.loads(ss_raw)
     method = str(ssj.get("method") or "chacha20-ietf-poly1305")
     password = str(ssj.get("password") or "")
     if not password:
-        password = _dex_cat_bin(ctr, "/opt/amnezia/shadowsocks/shadowsocks.key").decode().strip()  # noqa: E501
+        password = (
+            _dex_cat_bin(ctr, "/opt/amnezia/shadowsocks/shadowsocks.key")
+            .decode()
+            .strip()
+        )  # noqa: E501
 
     with _flock(f"cloak_{ctr}"):
         ca, crt, key, ta = _easyrsa_issue(ctr, client_id)
@@ -507,12 +538,18 @@ def issue_openvpn_ss_vpn_url(s: Settings) -> tuple[str, str]:
     ss_port = int(s.shadowsocks_public_port)
     client_id = _rand_id(16)
 
-    ss_raw = _dex_cat_bin(ctr, "/opt/amnezia/shadowsocks/ss-config.json").decode()  # noqa: E501
+    ss_raw = _dex_cat_bin(
+        ctr, "/opt/amnezia/shadowsocks/ss-config.json"
+    ).decode()  # noqa: E501
     ssj = json.loads(ss_raw)
     method = str(ssj.get("method") or "chacha20-ietf-poly1305")
     password = str(ssj.get("password") or "")
     if not password:
-        password = _dex_cat_bin(ctr, "/opt/amnezia/shadowsocks/shadowsocks.key").decode().strip()  # noqa: E501
+        password = (
+            _dex_cat_bin(ctr, "/opt/amnezia/shadowsocks/shadowsocks.key")
+            .decode()
+            .strip()
+        )  # noqa: E501
 
     with _flock(f"ovpnss_{ctr}"):
         ca, crt, key, ta = _easyrsa_issue(ctr, client_id)
@@ -562,7 +599,7 @@ def issue_ipsec_vpn_url(s: Settings) -> tuple[str, str]:
     with _flock(f"ipsec_{ctr}"):
         _dex_sh(
             ctr,
-            f"bash -c \"certutil -z <(head -c 1024 /dev/urandom) "
+            f'bash -c "certutil -z <(head -c 1024 /dev/urandom) '
             f"-S -c 'IKEv2 VPN CA' -n '{client_id}' "
             f"-s 'O=IKEv2 VPN,CN={client_id}' "
             f"-k rsa -g 3072 -v 120 -d sql:/etc/ipsec.d -t ',,' "
@@ -629,16 +666,24 @@ def _provision_xray_client(s: Settings) -> tuple[dict, str, str]:
             inbound_port,
             allow_fallback_restart=bool(s.xray_restart_container),
         )
-        pub = _dex_cat_bin(ctr, "/opt/amnezia/xray/xray_public.key").decode().strip()  # noqa: E501
-        short_id = _dex_cat_bin(ctr, "/opt/amnezia/xray/xray_short_id.key").decode().strip()  # noqa: E501
+        pub = (
+            _dex_cat_bin(ctr, "/opt/amnezia/xray/xray_public.key").decode().strip()
+        )  # noqa: E501
+        short_id = (
+            _dex_cat_bin(ctr, "/opt/amnezia/xray/xray_short_id.key").decode().strip()
+        )  # noqa: E501
         raw2 = _dex_cat_bin(ctr, path)
         doc2 = json.loads(raw2.decode("utf-8"))
         ib0 = next(
-            (x for x in (doc2.get("inbounds") or []) if x.get("protocol") == "vless"),  # noqa: E501
+            (
+                x for x in (doc2.get("inbounds") or []) if x.get("protocol") == "vless"
+            ),  # noqa: E501
             None,
         )
         if not ib0:
-            raise ContainerIssueError("Xray: inbound потерян после перезапуска")  # noqa: E501
+            raise ContainerIssueError(
+                "Xray: inbound потерян после перезапуска"
+            )  # noqa: E501
         rs = (ib0.get("streamSettings") or {}).get("realitySettings") or {}
         snames = rs.get("serverNames") or []
         site = str(snames[0]) if snames else "www.microsoft.com"
@@ -709,7 +754,9 @@ def issue_xray_client_json_text(s: Settings) -> str:
     return json.dumps(xray_inner, ensure_ascii=False, indent=2) + "\n"
 
 
-def provision_wireguard_admin_key(s: Settings) -> tuple[str, "GeneratedVpnConfig"]:  # noqa: E501, F821
+def provision_wireguard_admin_key(
+    s: Settings,
+) -> tuple[str, "GeneratedVpnConfig"]:  # noqa: E501, F821
     """Один вызов provision: сырой wg.conf + объект для записи VpnKey (vpn:// в key_value)."""  # noqa: E501
     from vpn_bot.services.protocol_generators import GeneratedVpnConfig
 
@@ -722,7 +769,9 @@ def provision_wireguard_admin_key(s: Settings) -> tuple[str, "GeneratedVpnConfig
     return client_conf, cfg
 
 
-def provision_xray_admin_key(s: Settings) -> tuple[str, "GeneratedVpnConfig"]:  # noqa: F821, E501
+def provision_xray_admin_key(
+    s: Settings,
+) -> tuple[str, "GeneratedVpnConfig"]:  # noqa: F821, E501
     """Один вызов provision: JSON клиента + объект для записи VpnKey."""
     from vpn_bot.services.protocol_generators import GeneratedVpnConfig
 
@@ -736,7 +785,9 @@ def provision_xray_admin_key(s: Settings) -> tuple[str, "GeneratedVpnConfig"]:  
     return raw_json, cfg
 
 
-def issue_amnezia_wg_vpn_url(s: Settings, conf_text: str, client_pub: str) -> str:  # noqa: E501
+def issue_amnezia_wg_vpn_url(
+    s: Settings, conf_text: str, client_pub: str
+) -> str:  # noqa: E501
     host = _public_host(s)
     dns1, dns2 = _dns_pair(s)
     mtu = (s.awg_client_mtu or "1376").strip() or "1376"

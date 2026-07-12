@@ -50,9 +50,13 @@ async def wg_show_dump(iface: str) -> str:
     if ctr or ctr2:
         peer_lines: list[str] = []
         if ctr:
-            peer_lines.extend(_wg_dump_peer_lines(await _wg_dump_from_docker(ctr, iface)))  # noqa: E501
+            peer_lines.extend(
+                _wg_dump_peer_lines(await _wg_dump_from_docker(ctr, iface))
+            )  # noqa: E501
         if ctr2:
-            peer_lines.extend(_wg_dump_peer_lines(await _wg_dump_from_docker(ctr2, if2)))  # noqa: E501
+            peer_lines.extend(
+                _wg_dump_peer_lines(await _wg_dump_from_docker(ctr2, if2))
+            )  # noqa: E501
         if not peer_lines:
             return ""
         # parse_wg_dump пропускает только первую строку — подставляем фиктивную строку интерфейса.  # noqa: E501

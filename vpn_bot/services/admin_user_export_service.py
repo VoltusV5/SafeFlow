@@ -17,7 +17,9 @@ from vpn_bot.wg_runtime import wg_show_dump
 from vpn_bot.wg_utils import parse_wg_dump
 
 
-async def _clean_xray_totals_by_user(session_analytics: AsyncSession) -> tuple[dict[int, float], dict[int, datetime | None]]:  # noqa: E501
+async def _clean_xray_totals_by_user(
+    session_analytics: AsyncSession,
+) -> tuple[dict[int, float], dict[int, datetime | None]]:  # noqa: E501
     # Сумма дельт clean xray за всё время + последний online timestamp по user_id  # noqa: E501
     r = await session_analytics.execute(
         select(
@@ -39,6 +41,7 @@ async def _clean_xray_totals_by_user(session_analytics: AsyncSession) -> tuple[d
         online_by_uid[int(uid)] = last_online
     return gb_by_uid, online_by_uid
 
+
 def _fmt_handshake_ts(ts: int) -> str:  # noqa: E302
     if not ts:
         return "нет (ещё не было успешного handshake)"
@@ -59,7 +62,9 @@ async def build_admin_users_traffic_handshake_report(
     }
 
     rows = await all_users_total_traffic_gb(session, session_analytics)
-    xray_gb_by_uid, xray_last_online_by_uid = await _clean_xray_totals_by_user(session_analytics)  # noqa: E501
+    xray_gb_by_uid, xray_last_online_by_uid = await _clean_xray_totals_by_user(
+        session_analytics
+    )  # noqa: E501
     rows.sort(
         key=lambda t: (
             t[0].tg_username is None,
@@ -68,7 +73,9 @@ async def build_admin_users_traffic_handshake_report(
         )
     )
 
-    keys_result = await session.execute(select(VpnKey).order_by(VpnKey.user_id, VpnKey.id))  # noqa: E501
+    keys_result = await session.execute(
+        select(VpnKey).order_by(VpnKey.user_id, VpnKey.id)
+    )  # noqa: E501
     keys_by_uid: dict[int, list[VpnKey]] = {}
     for k in keys_result.scalars().all():
         keys_by_uid.setdefault(int(k.user_id), []).append(k)
@@ -95,23 +102,27 @@ async def build_admin_users_traffic_handshake_report(
                 label = f"{kk.protocol}, файл {kk.config_filename}, active={kk.is_active}"  # noqa: E501
                 pub = (kk.wg_peer_public_key or "").strip()
                 if not pub:
-                    lines.append(f"    — {label}: не WG / нет wg_peer_public_key в БД")  # noqa: E501
+                    lines.append(
+                        f"    — {label}: не WG / нет wg_peer_public_key в БД"
+                    )  # noqa: E501
                     continue
                 if pub not in hs_by_pub:
                     lines.append(
                         f"    — {label}: пир не в дампе wg (сейчас нет в списке интерфейса)"  # noqa: E501
                     )
                 else:
-                    lines.append(
-                        f"    — {label}: {_fmt_handshake_ts(hs_by_pub[pub])}"
-                    )
+                    lines.append(f"    — {label}: {_fmt_handshake_ts(hs_by_pub[pub])}")
         xgb = float(xray_gb_by_uid.get(int(u.id), 0.0))
         last_online = xray_last_online_by_uid.get(int(u.id))
         if last_online is None:
             xonline = "нет"
         else:
-            xonline = last_online.astimezone(MSK).strftime("%Y-%m-%d %H:%M:%S МСК")  # noqa: E501
-        lines.append(f"(4) clean xray: трафик={xgb:.4f} ГБ; последний online={xonline}")  # noqa: E501
+            xonline = last_online.astimezone(MSK).strftime(
+                "%Y-%m-%d %H:%M:%S МСК"
+            )  # noqa: E501
+        lines.append(
+            f"(4) clean xray: трафик={xgb:.4f} ГБ; последний online={xonline}"
+        )  # noqa: E501
         lines.append("")
 
     return "\n".join(lines).rstrip() + "\n"

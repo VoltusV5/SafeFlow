@@ -6,8 +6,11 @@ from datetime import UTC, date, datetime, timedelta
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from vpn_bot.db.analytics_models import (TrafficLog, WhitelistBypassFeedback,
-                                         XrayTrafficLog)
+from vpn_bot.db.analytics_models import (
+    TrafficLog,
+    WhitelistBypassFeedback,
+    XrayTrafficLog,
+)
 from vpn_bot.db.models import ProblemReport, User, VpnKey
 
 
@@ -15,7 +18,9 @@ class TrafficStatsService:
     def __init__(self, session_analytics: AsyncSession) -> None:
         self._a = session_analytics
 
-    async def user_weekly_report(self, user_id: int) -> tuple[list[str], bytes | None]:  # noqa: E501
+    async def user_weekly_report(
+        self, user_id: int
+    ) -> tuple[list[str], bytes | None]:  # noqa: E501
         since = datetime.now(UTC) - timedelta(days=7)
         day_col = func.date(TrafficLog.logged_at)
         r = await self._a.execute(
@@ -48,9 +53,13 @@ class TrafficStatsService:
             "",
         ]
         if not rows or total_b == 0:
-            lines.append("Пока нет накопленных данных — демон должен работать на сервере с awg.")  # noqa: E501
+            lines.append(
+                "Пока нет накопленных данных — демон должен работать на сервере с awg."
+            )  # noqa: E501
         else:
-            lines.append(f"Всего за период: ~{total_gb:.2f} ГБ (сумма приращений rx+tx).")  # noqa: E501
+            lines.append(
+                f"Всего за период: ~{total_gb:.2f} ГБ (сумма приращений rx+tx)."
+            )  # noqa: E501
             lines.append("")
             for d, b in rows:
                 gb = b / (1024**3)
@@ -128,7 +137,9 @@ async def top_users_traffic_between(
     if not rows:
         return []
     uids = [int(u) for u, _ in rows]
-    r2 = await session.execute(select(User.id, User.tg_id).where(User.id.in_(uids)))  # noqa: E501
+    r2 = await session.execute(
+        select(User.id, User.tg_id).where(User.id.in_(uids))
+    )  # noqa: E501
     tg_by_id = {int(i): int(tg) for i, tg in r2.all()}
     out: list[tuple[int, int, float]] = []
     for iu, b in rows:
@@ -285,7 +296,9 @@ async def get_heavy_users_this_month(
     threshold_gb: float = 100.0,
 ) -> list[tuple[User, float]]:
     now = datetime.now(UTC)
-    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)  # noqa: E501
+    start_of_month = now.replace(
+        day=1, hour=0, minute=0, second=0, microsecond=0
+    )  # noqa: E501
     subq = (
         select(
             TrafficLog.user_id.label("uid"),
@@ -302,7 +315,9 @@ async def get_heavy_users_this_month(
         .subquery()
     )
     r = await session_analytics.execute(
-        select(subq.c.uid, subq.c.bt).where(subq.c.bt >= threshold_gb * (1024**3))  # noqa: E501
+        select(subq.c.uid, subq.c.bt).where(
+            subq.c.bt >= threshold_gb * (1024**3)
+        )  # noqa: E501
     )
     heavy_rows = r.all()
     if not heavy_rows:
@@ -326,7 +341,11 @@ async def count_distinct_clean_xray_users_between(
         select(func.count(func.distinct(XrayTrafficLog.user_id))).where(
             XrayTrafficLog.logged_at >= start,
             XrayTrafficLog.logged_at < end,
-            (func.coalesce(XrayTrafficLog.uplink_delta, 0) + func.coalesce(XrayTrafficLog.downlink_delta, 0) > 0)  # noqa: E501
+            (
+                func.coalesce(XrayTrafficLog.uplink_delta, 0)
+                + func.coalesce(XrayTrafficLog.downlink_delta, 0)
+                > 0
+            )  # noqa: E501
             | (XrayTrafficLog.online_count > 0),
         )
     )
@@ -345,7 +364,9 @@ async def clean_xray_traffic_gb_between(
                 ),
                 0,
             )
-        ).where(XrayTrafficLog.logged_at >= start, XrayTrafficLog.logged_at < end)  # noqa: E501
+        ).where(
+            XrayTrafficLog.logged_at >= start, XrayTrafficLog.logged_at < end
+        )  # noqa: E501
     )
     b = int(r.scalar_one() or 0)
     return b / (1024**3)
@@ -358,14 +379,22 @@ async def count_all_active_vpn_users_between(
         select(func.distinct(TrafficLog.user_id)).where(
             TrafficLog.logged_at >= start,
             TrafficLog.logged_at < end,
-            (func.coalesce(TrafficLog.rx_delta, 0) + func.coalesce(TrafficLog.tx_delta, 0) > 0),  # noqa: E501
+            (
+                func.coalesce(TrafficLog.rx_delta, 0)
+                + func.coalesce(TrafficLog.tx_delta, 0)
+                > 0
+            ),  # noqa: E501
         )
     )
     xray_rows = await session_analytics.execute(
         select(func.distinct(XrayTrafficLog.user_id)).where(
             XrayTrafficLog.logged_at >= start,
             XrayTrafficLog.logged_at < end,
-            (func.coalesce(XrayTrafficLog.uplink_delta, 0) + func.coalesce(XrayTrafficLog.downlink_delta, 0) > 0)  # noqa: E501
+            (
+                func.coalesce(XrayTrafficLog.uplink_delta, 0)
+                + func.coalesce(XrayTrafficLog.downlink_delta, 0)
+                > 0
+            )  # noqa: E501
             | (XrayTrafficLog.online_count > 0),
         )
     )

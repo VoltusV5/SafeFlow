@@ -41,14 +41,20 @@ async def contact_entry(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(_auth, StateFilter(ContactStates.composing), Command("cancel_contact"))  # noqa: E501
+@router.message(
+    _auth, StateFilter(ContactStates.composing), Command("cancel_contact")
+)  # noqa: E501
 async def contact_cancel_cmd(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer("Обращение отменено.", reply_markup=main_menu_kb())
 
 
-@router.message(_auth, StateFilter(ContactStates.composing), F.text == "Сообщить о проблеме")  # noqa: E501
-async def contact_switch_to_report(message: Message, state: FSMContext) -> None:  # noqa: E501
+@router.message(
+    _auth, StateFilter(ContactStates.composing), F.text == "Сообщить о проблеме"
+)  # noqa: E501
+async def contact_switch_to_report(
+    message: Message, state: FSMContext
+) -> None:  # noqa: E501
     await state.clear()
     await message.answer(
         "Что именно не работает? Выберите вариант — администратор получит уведомление.\n\n"  # noqa: E501
@@ -72,7 +78,9 @@ async def contact_accumulate(message: Message, state: FSMContext) -> None:
     await state.update_data({CONTACT_IDS_KEY: ids})
 
 
-@router.callback_query(_auth, StateFilter(ContactStates.composing), F.data == "ct:abort")  # noqa: E501
+@router.callback_query(
+    _auth, StateFilter(ContactStates.composing), F.data == "ct:abort"
+)  # noqa: E501
 async def contact_cb_abort(cb: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     if isinstance(cb.message, Message):
@@ -85,8 +93,12 @@ async def contact_cb_abort(cb: CallbackQuery, state: FSMContext) -> None:
     )
 
 
-@router.callback_query(_auth, StateFilter(ContactStates.composing), F.data == "ct:commit")  # noqa: E501
-async def contact_cb_commit(cb: CallbackQuery, state: FSMContext) -> None:  # noqa: C901, E501
+@router.callback_query(
+    _auth, StateFilter(ContactStates.composing), F.data == "ct:commit"
+)  # noqa: E501
+async def contact_cb_commit(
+    cb: CallbackQuery, state: FSMContext
+) -> None:  # noqa: C901, E501
     data = await state.get_data()
     ids: list[int] = list(data.get(CONTACT_IDS_KEY, []))
     if not ids:
@@ -108,13 +120,13 @@ async def contact_cb_commit(cb: CallbackQuery, state: FSMContext) -> None:  # no
         return
 
     uid = cb.from_user.id
-    chat_user = cb.message.chat.id if isinstance(cb.message, Message) else cb.from_user.id  # noqa: E501
+    chat_user = (
+        cb.message.chat.id if isinstance(cb.message, Message) else cb.from_user.id
+    )  # noqa: E501
     un = cb.from_user.username
     user_line = f"@{un}" if un else "(без username)"
     header = (
-        "Обращение от пользователя\n"
-        f"Telegram ID: {uid}\n"
-        f"Username: {user_line}\n"
+        "Обращение от пользователя\n" f"Telegram ID: {uid}\n" f"Username: {user_line}\n"
     )
 
     payload_ok = False
