@@ -68,6 +68,12 @@ class MockUserRepository(MockRepository):
                 return user
         return None
 
+    async def get_by_email(self, email: str):
+        for user in self.data.values():
+            if getattr(user, "email", None) == email:
+                return user
+        return None
+
 
 class MockSubscriptionRepository(MockRepository):
     """Заглушка для репозитория подписок."""

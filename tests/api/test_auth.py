@@ -165,13 +165,4 @@ async def test_auth_telegram_invalid_hash():
     app.dependency_overrides.clear()
 
 
-@pytest.mark.asyncio
-async def test_auth_login_basic(async_session):
-    """Тест классической авторизации — заглушка возвращает 401."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        response = await ac.post(
-            "/api/v1/auth/login",
-            data={"username": "test@example.com", "password": "password"}
-        )
-        assert response.status_code == 401
+

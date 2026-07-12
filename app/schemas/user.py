@@ -7,23 +7,22 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from app.schemas.base import BaseSchema
 
 
-class UserCreate(BaseSchema):
-    """Схема для создания нового пользователя.
+class UserCreate(BaseModel):
+    telegram_id: int | None = Field(default=None, description="Telegram ID пользователя")
+    email: str | None = Field(default=None, description="Email пользователя")
+    password: str | None = Field(default=None, description="Пароль пользователя (для Email-регистрации)")
+    username: str | None = Field(default=None, description="Имя пользователя в Telegram")
+    referred_by: int | None = Field(default=None, description="ID реферера")
 
-    Attributes:
-        telegram_id: Уникальный идентификатор пользователя в Telegram.
-        username: Никнейм пользователя (если есть).
-        referred_by: ID пользователя, который пригласил (если есть).
-    """
 
-    telegram_id: int
-    username: Optional[str] = None
-    referred_by: Optional[int] = None
+class UserEmailLogin(BaseModel):
+    email: str
+    password: str
 
 
 class UserUpdate(BaseSchema):
@@ -53,8 +52,21 @@ class UserResponse(BaseSchema):
     """
 
     id: int
-    telegram_id: int
-    username: Optional[str] = None
-    balance: int
+    telegram_id: int | None = None
+    username: str | None = None
+    balance: float
     is_banned: bool
     created_at: datetime
+
+
+class SubscriptionInfo(BaseSchema):
+    """Схема информации об активной подписке для TWA."""
+    plan: str
+    expires_at: Optional[datetime] = None
+    is_active: bool
+
+
+class UserMeResponse(BaseSchema):
+    """Схема ответа для эндпоинта /users/me."""
+    user: UserResponse
+    active_subscription: Optional[SubscriptionInfo] = None

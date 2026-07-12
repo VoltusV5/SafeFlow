@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     # Telegram
     bot_token: SecretStr
     admin_ids: List[int] = []
+    
+    # Webhook vs Long Polling
+    use_webhook: bool = False
+    bot_webhook_url: str = ""
+    bot_webhook_path: str = "/api/v1/bot/webhook"
+    webapp_url: str = "https://localhost:5173"
 
     # Database (PostgreSQL)
     postgres_user: str = "postgres"

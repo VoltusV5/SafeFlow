@@ -119,9 +119,48 @@ async def auth_login_basic(
     uow: UnitOfWork = Depends(get_uow)
 ):
     """Классическая авторизация по email и паролю."""
-    # Заглушка, т.к. регистрация по email еще не реализована
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Incorrect username or password",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    from app.core.security import verify_password
+    
+    async with uow:
+        user = await uow.users.get_by_email(form_data.username)
+        if not user or not user.hashed_password:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный email или пароль",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
+        if not verify_password(form_data.password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный email или пароль",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+            
+        access_token = create_access_token(data={"sub": str(user.id)})
+        return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/register")
+async def auth_register(
+    payload: UserCreate,
+    uow: UnitOfWork = Depends(get_uow)
+):
+    """Регистрация по email."""
+    if not payload.email or not payload.password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email and password are required for registration"
+        )
+        
+    user_service = UserService(uow)
+    try:
+        user = await user_service.register_user(payload)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+        
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer", "user_id": user.id}

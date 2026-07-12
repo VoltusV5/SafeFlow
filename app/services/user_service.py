@@ -23,42 +23,43 @@ class UserService:
         self.uow = uow
 
     async def register_user(self, user_in: UserCreate) -> UserResponse:
-        """Регистрация нового пользователя.
-
-        Если пользователь существует, возвращает его.
-        Если новый - создает, дает базовую подписку и начисляет бонус за реферала.
-
-        Args:
-            user_in: DTO с данными пользователя.
-
-        Returns:
-            DTO с данными зарегистрированного пользователя.
-        """
+        """Регистрация нового пользователя."""
         async with self.uow:
             # Проверяем существование
-            existing = await self.uow.users.get_by_tg_id(user_in.telegram_id)
-            if existing:
-                return UserResponse.model_validate(
-                    {
-                        "id": existing.id,
-                        "telegram_id": getattr(existing, "tg_id", None)
-                        or getattr(existing, "telegram_id", None),
-                        "username": existing.username,
-                        "balance": getattr(existing, "balance", 0),
-                        "is_banned": getattr(existing, "is_banned", False),
-                        "created_at": getattr(existing, "created_at", None)
-                        or datetime.now(timezone.utc)
-                    }
-                )
+            if user_in.telegram_id:
+                existing = await self.uow.users.get_by_tg_id(user_in.telegram_id)
+                if existing:
+                    return UserResponse.model_validate(
+                        {
+                            "id": existing.id,
+                            "telegram_id": getattr(existing, "tg_id", None),
+                            "username": existing.username,
+                            "balance": getattr(existing, "balance", 0),
+                            "is_banned": getattr(existing, "is_banned", False),
+                            "created_at": getattr(existing, "created_at", None) or datetime.now(timezone.utc)
+                        }
+                    )
+            elif user_in.email:
+                existing = await self.uow.users.get_by_email(user_in.email)
+                if existing:
+                    raise ValueError("User with this email already exists")
+            else:
+                raise ValueError("Either telegram_id or email must be provided")
 
-            # Создаем пользователя: поле UserCreate.telegram_id → колонка User.tg_id
-            user_data = user_in.model_dump()
-            user_data["tg_id"] = user_data.pop("telegram_id")
-            user_data.pop("referred_by", None)  # not a DB column
+            from app.core.security import get_password_hash
+            
+            # Создаем пользователя
+            user_data = user_in.model_dump(exclude={"password", "telegram_id", "referred_by"})
+            if user_in.telegram_id is not None:
+                user_data["tg_id"] = user_in.telegram_id
+                
+            if user_in.password:
+                user_data["hashed_password"] = get_password_hash(user_in.password)
+                
             new_user = await self.uow.users.create(user_data)
 
-            # Создаем триальную подписку (например, 7 дней базы по умолчанию)
-            expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+            # Создаем триальную подписку (например, 3 дня базы по умолчанию)
+            expires_at = datetime.now(timezone.utc) + timedelta(days=3)
 
             # Проверяем реферальную программу
             if user_in.referred_by:

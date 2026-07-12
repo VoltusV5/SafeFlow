@@ -14,3 +14,7 @@ class UserRepository(BaseRepository[User]):
     async def get_by_tg_id(self, tg_id: int) -> Optional[User]:
         result = await self.session.execute(select(User).filter(User.tg_id == tg_id))
         return result.scalars().first()
+
+    async def get_by_email(self, email: str) -> Optional[User]:
+        result = await self.session.execute(select(User).filter(User.email == email))
+        return result.scalars().first()

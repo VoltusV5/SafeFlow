@@ -12,9 +12,12 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    tg_id: Mapped[int] = mapped_column(
-        BigInteger, unique=True, index=True, nullable=False)
+    tg_id: Mapped[int | None] = mapped_column(
+        BigInteger, unique=True, index=True, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, unique=True, index=True, nullable=True)
+    hashed_password: Mapped[str | None] = mapped_column(String, nullable=True)
     username: Mapped[str | None] = mapped_column(String, nullable=True)
+    notification_preference: Mapped[str] = mapped_column(String, default="telegram")
     referrer_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=True)
     trial_used: Mapped[bool] = mapped_column(Boolean, default=False)
