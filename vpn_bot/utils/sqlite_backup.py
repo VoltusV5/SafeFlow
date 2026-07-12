@@ -1,4 +1,4 @@
-"""Снимок SQLite в отдельный файл через API backup (безопасно при работающем боте)."""
+"""Снимок SQLite в отдельный файл через API backup (безопасно при работающем боте)."""  # noqa: E501
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def resolve_sqlite_path(database_url: str) -> Path | None:
 
 
 def sqlite_backup_to_tempfile(src_path: Path) -> Path:
-    """Пишет согласованную копию в tempfile; вызывающий удаляет после отправки."""
+    """Пишет согласованную копию в tempfile; вызывающий удаляет после отправки."""  # noqa: E501
     fd, name = tempfile.mkstemp(prefix="vpn_bot_db_", suffix=".sqlite3")
     os.close(fd)
     dst = Path(name)

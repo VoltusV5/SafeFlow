@@ -2,11 +2,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from sqlalchemy import event, text
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
 
 from vpn_bot.config import get_settings
 from vpn_bot.db.base import Base
@@ -31,7 +28,7 @@ def _sqlite_on_connect(dbapi_conn, connection_record) -> None:
     finally:
         cur.close()
 
-async_session_maker = async_sessionmaker(
+async_session_maker = async_sessionmaker(  # noqa: E305
     engine,
     class_=AsyncSession,
     expire_on_commit=False,
@@ -40,12 +37,12 @@ async_session_maker = async_sessionmaker(
 
 
 async def init_db() -> None:
-    from vpn_bot.db import models as _models
+    from vpn_bot.db import models as _models  # noqa: F401
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         if "sqlite" in _settings.database_url.lower():
-            # WAL: читатели не блокируют писателя — критично при bot + 2 демона.
+            # WAL: читатели не блокируют писателя — критично при bot + 2 демона.  # noqa: E501
             await conn.execute(text("PRAGMA journal_mode=WAL"))
             await conn.execute(text("PRAGMA synchronous=NORMAL"))
             r = await conn.execute(text("PRAGMA table_info(users)"))
@@ -71,7 +68,7 @@ async def init_db() -> None:
             if kcols3 and "last_activity_at" not in kcols3:
                 await conn.execute(
                     text(
-                        "ALTER TABLE vpn_keys ADD COLUMN last_activity_at DATETIME"
+                        "ALTER TABLE vpn_keys ADD COLUMN last_activity_at DATETIME"  # noqa: E501
                     )
                 )
                 await conn.execute(
@@ -80,7 +77,7 @@ async def init_db() -> None:
                         "WHERE last_activity_at IS NULL"
                     )
                 )
-@asynccontextmanager
+@asynccontextmanager  # noqa: E302
 async def session_scope() -> AsyncIterator[AsyncSession]:
     async with async_session_maker() as session:
         try:

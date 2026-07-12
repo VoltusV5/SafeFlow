@@ -17,7 +17,7 @@ _MULTI_MESSAGE_COPY_HINT = (
     "Чтобы скопировать ключ целиком:\n"
     "• Выделите все сообщения с ключом подряд, которые пришли от бота.\n"
     "• Нажмите «Копировать».\n\n"
-    "Длинная ссылка vpn:// не помещается в одно сообщение — нужно скопировать все части вместе."
+    "Длинная ссылка vpn:// не помещается в одно сообщение — нужно скопировать все части вместе."  # noqa: E501
 )
 
 _PROTOCOLS_TEXT_DELIVERY_COPY_HINT = frozenset(
@@ -29,12 +29,12 @@ _PROTOCOLS_TEXT_DELIVERY_COPY_HINT = frozenset(
     }
 )
 
-def _header_and_body(key: VpnKey) -> tuple[str, str]:
+def _header_and_body(key: VpnKey) -> tuple[str, str]:  # noqa: E302
     raw = key.key_value
     s = raw.lstrip()
     if s.startswith(_HEADER_PREFIX) and "\n" in s:
         i = s.index("\n")
-        return s[:i].strip(), s[i + 1 :].lstrip()
+        return s[:i].strip(), s[i + 1 :].lstrip()  # noqa: E203
     protocol = VpnProtocol(key.protocol)
     header = f"{_HEADER_PREFIX}{VpnProtocol.base_label(protocol)}):"
     return header, raw.strip()

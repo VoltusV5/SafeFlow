@@ -52,12 +52,15 @@ vpn-telegram-bot/
 - `[x]` Генерация и применение первой миграции БД.
 
 ## Этап 3: Доступ к Данным (Repositories & TDD)
-- `[ ]` TDD: Тест Base CRUD -> Реализация `BaseRepository`.
-- `[ ]` TDD: Тест UserRepository -> Реализация `UserRepository`.
-- `[ ]` TDD: Тест SubscriptionRepository -> Реализация `SubscriptionRepository`.
-- `[ ]` TDD: Тесты для Payment, Key, Server, Promocode Repositories -> Их реализация.
+- `[x]` TDD: Тест Base CRUD -> Реализация `BaseRepository`.
+- `[x]` TDD: Тест UserRepository -> Реализация `UserRepository`.
+- `[x]` TDD: Тест SubscriptionRepository -> Реализация `SubscriptionRepository`.
+- `[x]` TDD: Тесты для Payment, Key, Server, Promocode Repositories -> Их реализация.
 
-## Этап 4: Бизнес-логика (Service Layer & TDD)
+## Этап 4: Архитектура (UoW, DTO, Enums) и Бизнес-логика (Service Layer)
+- `[ ]` Архитектура: Реализация паттерна Unit Of Work (`app/db/uow.py`) и удаление жестких `await self.session.commit()` из методов репозиториев для обеспечения консистентности транзакций.
+- `[ ]` Архитектура: Создание Pydantic схем (DTO) для обмена данными (`app/schemas/`).
+- `[ ]` Архитектура: Замена строковых типов на ENUM в моделях БД и применение миграции.
 - `[ ]` TDD: Тесты реферальных начислений и банов -> Реализация `UserService`.
 - `[ ]` TDD: Тесты расчетов тарифов, применения промокодов и возвратов -> Реализация `BillingService`.
 - `[ ]` TDD: Тесты аллокации IP/UUID и валидации серверов -> Реализация `VpnManagerService`.

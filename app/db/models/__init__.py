@@ -1,3 +1,8 @@
+"""Инициализация моделей базы данных.
+
+Модуль собирает все SQLAlchemy модели в одном месте для Alembic и приложения.
+"""
+
 from app.db.models.base import Base
 from app.db.models.user import User
 from app.db.models.subscription import Subscription
@@ -15,5 +20,5 @@ __all__ = [
     "Key",
     "Server",
     "Promocode",
-    "RefundTicket"
+    "RefundTicket",
 ]

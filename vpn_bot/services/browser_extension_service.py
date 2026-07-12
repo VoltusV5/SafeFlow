@@ -5,11 +5,8 @@ from __future__ import annotations
 from html import escape
 
 from vpn_bot.config import Settings
-
 from vpn_bot.services.telegram_proxy_service import (
-    is_http_proxy_configured,
-    resolve_telegram_proxy_host,
-)
+    is_http_proxy_configured, resolve_telegram_proxy_host)
 
 SMARTPROXY_CHROME_STORE_URL = (
     "https://chromewebstore.google.com/detail/smartproxy/"
@@ -26,7 +23,7 @@ def format_smartproxy_browser_message(settings: Settings) -> str:
     if not host or not is_http_proxy_configured(settings):
         return (
             "Расширение для браузера пока недоступно: на сервере не настроен "
-            "HTTP-прокси (TELEGRAM_HTTP_PROXY_USER, TELEGRAM_HTTP_PROXY_PASSWORD) "
+            "HTTP-прокси (TELEGRAM_HTTP_PROXY_USER, TELEGRAM_HTTP_PROXY_PASSWORD) "  # noqa: E501
             "или не задан адрес сервера. Обратитесь к администратору."
         )
 

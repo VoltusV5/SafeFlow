@@ -9,19 +9,12 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from vpn_bot.config import get_settings
 from vpn_bot.db.session import init_db
 from vpn_bot.db.session_analytics import init_analytics_db
-from vpn_bot.handlers import (
-    admin,
-    browser_extension,
-    common,
-    contact_admin,
-    donate,
-    guest,
-    member,
-    report_problem,
-    telegram_proxy,
-)
+from vpn_bot.handlers import (admin, browser_extension, common, contact_admin,
+                              donate, guest, member, report_problem,
+                              telegram_proxy)
 from vpn_bot.jobs.star_reminders import monthly_donation_reminders_loop
-from vpn_bot.middlewares import AuthMiddleware, BanMiddleware, DbSessionMiddleware
+from vpn_bot.middlewares import (AuthMiddleware, BanMiddleware,
+                                 DbSessionMiddleware)
 
 
 async def run_bot() -> None:

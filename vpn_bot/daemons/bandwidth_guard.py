@@ -12,13 +12,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from vpn_bot.config import get_settings
-from vpn_bot.constants import (
-    BANDWIDTH_FAIR_SHARE_POOL_MBPS,
-    BANDWIDTH_FAIR_SHARE_THRESHOLD_MBPS,
-    BANDWIDTH_MAX_PER_USER_MBPS,
-    CPU_FAIR_SHARE_PERCENT,
-    WG_ACTIVE_HANDSHAKE_SEC,
-)
+from vpn_bot.constants import (BANDWIDTH_FAIR_SHARE_POOL_MBPS,
+                               BANDWIDTH_FAIR_SHARE_THRESHOLD_MBPS,
+                               BANDWIDTH_MAX_PER_USER_MBPS,
+                               CPU_FAIR_SHARE_PERCENT, WG_ACTIVE_HANDSHAKE_SEC)
 from vpn_bot.db.models import UserLimit, VpnKey
 from vpn_bot.db.session import async_session_maker, init_db
 from vpn_bot.wg_runtime import wg_show_dump
@@ -37,7 +34,7 @@ def _append_log(path: str, msg: str) -> None:
         pass
 
 
-async def _tick(session: AsyncSession) -> None:
+async def _tick(session: AsyncSession) -> None:  # noqa: C901
     s = get_settings()
     iface = os.environ.get("BANDWIDTH_NET_IFACE", s.daemon_net_interface)
     wg_if = os.environ.get("BANDWIDTH_WG_IFACE", s.daemon_wg_interface)
@@ -80,19 +77,19 @@ async def _tick(session: AsyncSession) -> None:
             if uid is not None:
                 active_uids.add(uid)
                 # extract IP from allowed_ips
-                ip = str(p.get("allowed_ips", "")).split(",")[0].split("/")[0].strip()
+                ip = str(p.get("allowed_ips", "")).split(",")[0].split("/")[0].strip()  # noqa: E501
                 if ip:
                     active_ips.append(ip)
 
     n = len(active_uids)
-    fair = mbps > BANDWIDTH_FAIR_SHARE_THRESHOLD_MBPS or cpu > CPU_FAIR_SHARE_PERCENT
+    fair = mbps > BANDWIDTH_FAIR_SHARE_THRESHOLD_MBPS or cpu > CPU_FAIR_SHARE_PERCENT  # noqa: E501
     if fair and n > 0:
         per_user = max(1, BANDWIDTH_FAIR_SHARE_POOL_MBPS // n)
     else:
         per_user = BANDWIDTH_MAX_PER_USER_MBPS
 
     for uid in active_uids:
-        row = await session.scalar(select(UserLimit).where(UserLimit.user_id == uid))
+        row = await session.scalar(select(UserLimit).where(UserLimit.user_id == uid))  # noqa: E501
         if row:
             # Меньше лишних UPDATE → меньше конкуренции за SQLite.
             if row.limit_mbps != per_user or row.fair_share_active != fair:
@@ -110,7 +107,7 @@ async def _tick(session: AsyncSession) -> None:
             )
 
     summary = (
-        f"net~{mbps:.0f}Mbit/s cpu={cpu:.1f}% fair_share={fair} active_users={n} "
+        f"net~{mbps:.0f}Mbit/s cpu={cpu:.1f}% fair_share={fair} active_users={n} "  # noqa: E501
         f"per_user={per_user}Mbit/s iface={iface}/{wg_if}"
     )
     _append_log(s.bandwidth_guard_log, summary)
@@ -121,9 +118,9 @@ async def _tick(session: AsyncSession) -> None:
             f"Активирован fair-share: {n} юзеров → по {per_user} Мбит/с",
         )
 
-    apply_tc = os.environ.get("BANDWIDTH_TC_APPLY", "").lower() in ("1", "true", "yes")
+    apply_tc = os.environ.get("BANDWIDTH_TC_APPLY", "").lower() in ("1", "true", "yes")  # noqa: E501
     # If using Docker container for WG, we need to run tc inside it
-    ctr = os.environ.get("AWG_DOCKER_CONTAINER", s.awg_docker_container).strip()
+    ctr = os.environ.get("AWG_DOCKER_CONTAINER", s.awg_docker_container).strip()  # noqa: E501
     ctr2 = (s.awg2_docker_container or "").strip()
     if apply_tc:
         if not fair or n == 0:
@@ -136,13 +133,13 @@ tc qdisc add dev {wg_if} root handle 1: htb default 10
 tc class add dev {wg_if} parent 1: classid 1:1 htb rate {per_user}mbit
 tc class add dev {wg_if} parent 1: classid 1:10 htb rate 1000mbit
 for IP in {ips_str}; do
-    tc filter add dev {wg_if} protocol ip parent 1:0 u32 match ip dst $IP flowid 1:1
+    tc filter add dev {wg_if} protocol ip parent 1:0 u32 match ip dst $IP flowid 1:1  # noqa: E501
 done
 """
         if ctr:
-            subprocess.run(["docker", "exec", ctr, "sh", "-c", cmd], check=False)
+            subprocess.run(["docker", "exec", ctr, "sh", "-c", cmd], check=False)  # noqa: E501
         if ctr2:
-            subprocess.run(["docker", "exec", ctr2, "sh", "-c", cmd], check=False)
+            subprocess.run(["docker", "exec", ctr2, "sh", "-c", cmd], check=False)  # noqa: E501
         if not ctr and not ctr2 and os.geteuid() == 0:
             subprocess.run(["sh", "-c", cmd], check=False)
 

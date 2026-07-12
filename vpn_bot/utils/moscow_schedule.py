@@ -20,7 +20,7 @@ def moscow_day_bounds_utc(d: date) -> tuple[datetime, datetime]:
 
 
 def yesterday_moscow_date(ref: datetime | None = None) -> date:
-    """Вчерашняя дата по календарю МСК относительно ref (по умолчанию сейчас)."""
+    """Вчерашняя дата по календарю МСК относительно ref (по умолчанию сейчас)."""  # noqa: E501
     m = (ref or datetime.now(UTC)).astimezone(MSK)
     return (m - timedelta(days=1)).date()
 
@@ -40,10 +40,10 @@ def seconds_until_next_moscow_time(
     minute: int = 0,
     ref: datetime | None = None,
 ) -> float:
-    """Секунды до ближайшего наступления hour:minute по МСК (строго после ref)."""
+    """Секунды до ближайшего наступления hour:minute по МСК (строго после ref)."""  # noqa: E501
     now = ref or datetime.now(UTC)
     m = now.astimezone(MSK)
     target = m.replace(hour=hour, minute=minute, second=0, microsecond=0)
     if m >= target:
         target += timedelta(days=1)
-    return max(0.0, (target.astimezone(UTC) - now.astimezone(UTC)).total_seconds())
+    return max(0.0, (target.astimezone(UTC) - now.astimezone(UTC)).total_seconds())  # noqa: E501

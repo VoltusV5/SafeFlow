@@ -1,6 +1,7 @@
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter, and_f
-from aiogram.types import CallbackQuery, FSInputFile, LinkPreviewOptions, Message
+from aiogram.types import (CallbackQuery, FSInputFile, LinkPreviewOptions,
+                           Message)
 
 from vpn_bot.constants import MAIN_MENU_BUTTON_BROWSER_EXTENSION
 from vpn_bot.filters import AuthedFilter
@@ -9,9 +10,7 @@ from vpn_bot.handlers.report_problem import ReportProblemStates
 from vpn_bot.keyboards import browser_extension_kb, main_menu_kb
 from vpn_bot.paths import resolved_guides_src_dir
 from vpn_bot.services.browser_extension_service import (
-    SMARTPROXY_GUIDE_PDF_NAME,
-    format_smartproxy_browser_message,
-)
+    SMARTPROXY_GUIDE_PDF_NAME, format_smartproxy_browser_message)
 from vpn_bot.utils.text import split_telegram_message
 
 router = Router(name="browser_extension")
@@ -22,7 +21,7 @@ _not_in_contact = and_f(
 )
 
 
-@router.message(_auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_BROWSER_EXTENSION)
+@router.message(_auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_BROWSER_EXTENSION)  # noqa: E501
 @router.message(_auth, _not_in_contact, Command("browser_extension"))
 async def browser_extension_entry(message: Message) -> None:
     from vpn_bot.config import get_settings

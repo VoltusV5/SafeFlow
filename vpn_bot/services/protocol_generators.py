@@ -6,21 +6,17 @@ from dataclasses import dataclass
 
 from vpn_bot.config import get_settings
 from vpn_bot.enums import VpnProtocol
-from vpn_bot.services.amnezia_protocols import (
-    issue_amnezia_wg_vpn_url,
-    issue_ipsec_vpn_url,
-    issue_openvpn_cloak_vpn_url,
-    issue_openvpn_ss_vpn_url,
-    issue_openvpn_vpn_url,
-    issue_wireguard_vpn_url,
-    issue_xray_vpn_url,
-)
-from vpn_bot.services.clean_xray_service import (
-    issue_clean_xray_ss_url,
-    issue_clean_xray_trojan_url,
-    issue_clean_xray_vless_url,
-    issue_clean_xray_vmess_url,
-)
+from vpn_bot.services.amnezia_protocols import (issue_amnezia_wg_vpn_url,
+                                                issue_ipsec_vpn_url,
+                                                issue_openvpn_cloak_vpn_url,
+                                                issue_openvpn_ss_vpn_url,
+                                                issue_openvpn_vpn_url,
+                                                issue_wireguard_vpn_url,
+                                                issue_xray_vpn_url)
+from vpn_bot.services.clean_xray_service import (issue_clean_xray_ss_url,
+                                                 issue_clean_xray_trojan_url,
+                                                 issue_clean_xray_vless_url,
+                                                 issue_clean_xray_vmess_url)
 from vpn_bot.services.keygen import _FILE_STEM, build_key_config
 from vpn_bot.vpn_generator import generate_amnezia_wg_peer
 
@@ -45,7 +41,7 @@ async def generate_amnezia_wg(hint: str) -> GeneratedVpnConfig:
     s = get_settings()
     if s.generate_peer_script.strip():
         _, body, pub = await generate_amnezia_wg_peer(hint)
-        vpn_url = await asyncio.to_thread(issue_amnezia_wg_vpn_url, s, body, pub)
+        vpn_url = await asyncio.to_thread(issue_amnezia_wg_vpn_url, s, body, pub)  # noqa: E501
         fn = f"{_FILE_STEM[VpnProtocol.AMNEZIA_WG]}.txt"
         return GeneratedVpnConfig(fn, vpn_url, pub)
     return _stub(VpnProtocol.AMNEZIA_WG, hint)
@@ -124,5 +120,5 @@ _GENERATORS: dict[VpnProtocol, _GeneratorFn] = {
 }
 
 
-async def generate_for_protocol(protocol: VpnProtocol, hint: str) -> GeneratedVpnConfig:
+async def generate_for_protocol(protocol: VpnProtocol, hint: str) -> GeneratedVpnConfig:  # noqa: E501
     return await _GENERATORS[protocol](hint)

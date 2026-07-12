@@ -15,8 +15,8 @@ from vpn_bot.utils.donate_payload import da_reminder_text, reminder_text
 
 logger = logging.getLogger(__name__)
 
-# Один раз в сутки: выбираем всех, у кого next_reminder_at уже наступил (звёзды и DA).
-# После успешной отправки bump_reminder сдвигает дату на +30 дней → не чаще 1 сообщения в месяц на канал.
+# Один раз в сутки: выбираем всех, у кого next_reminder_at уже наступил (звёзды и DA).  # noqa: E501
+# После успешной отправки bump_reminder сдвигает дату на +30 дней → не чаще 1 сообщения в месяц на канал.  # noqa: E501
 _REMINDER_TICK_SEC = 86400
 
 
@@ -57,7 +57,7 @@ async def _process_da_due(bot: Bot) -> None:
     from datetime import UTC, datetime
 
     now = datetime.now(UTC)
-    url = get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"
+    url = get_settings().donation_alerts_url.strip() or "https://www.donationalerts.com/"  # noqa: E501
     async with session_scope() as session:
         due = await DonationAlertsReminderService(session).list_due(now)
     for sub_id, tg_id in due:

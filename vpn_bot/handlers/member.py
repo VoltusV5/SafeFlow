@@ -5,57 +5,40 @@ from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter, and_f
 from aiogram.fsm.context import FSMContext
-from aiogram.types import (
-    BufferedInputFile,
-    CallbackQuery,
-    FSInputFile,
-    LinkPreviewOptions,
-    Message,
-)
+from aiogram.types import (BufferedInputFile, CallbackQuery, FSInputFile,
+                           LinkPreviewOptions, Message)
 
+from vpn_bot.constants import (MAIN_MENU_BUTTON_BACK_TO_MAIN,
+                               MAIN_MENU_BUTTON_SUPPORT_DONATE)
 from vpn_bot.db.analytics_models import WhitelistBypassFeedback
 from vpn_bot.db.models import User
 from vpn_bot.enums import KeyDelivery, VpnProtocol
-from vpn_bot.exceptions import ContainerIssueError, PeerGenerationError, TooManyKeysError
+from vpn_bot.exceptions import (ContainerIssueError, PeerGenerationError,
+                                TooManyKeysError)
 from vpn_bot.filters import AuthedFilter
-from vpn_bot.handlers.delivery import deliver_secure_key
-from vpn_bot.constants import (
-    MAIN_MENU_BUTTON_BACK_TO_MAIN,
-    MAIN_MENU_BUTTON_SUPPORT_DONATE,
-)
-from vpn_bot.keyboards import (
-    amnezia_other_protocols_kb,
-    amnezia_protocols_kb,
-    delivery_kb,
-    instructions_after_text_kb,
-    instructions_platform_kb,
-    instructions_telegram_proxy_kb,
-    key_apps_kb,
-    main_menu_kb,
-    protocols_kb,
-    support_submenu_kb,
-    safeflow_provider_kb,
-    whitelist_bypass_kb,
-    whitelist_instruction_view_kb,
-    whitelist_platforms_kb,
-    whitelist_vkturn_kb,
-    xray_variants_kb,
-)
-from vpn_bot.texts_whitelist_bypass import (
-    WHITELIST_BYPASS_INTRO_HTML,
-    WHITELIST_INSTR_MENU_HTML,
-    WHITELIST_PLATFORM_CHUNKS,
-    VKTURN_TEST_INTRO_HTML,
-    VKTURN_VK_LINK,
-)
-from vpn_bot.paths import resolved_guides_src_dir
 from vpn_bot.handlers.contact_admin import ContactStates
+from vpn_bot.handlers.delivery import deliver_secure_key
 from vpn_bot.handlers.report_problem import ReportProblemStates
+from vpn_bot.keyboards import (amnezia_other_protocols_kb,  # noqa: F401
+                               amnezia_protocols_kb, delivery_kb,
+                               instructions_after_text_kb,
+                               instructions_platform_kb,
+                               instructions_telegram_proxy_kb, key_apps_kb,
+                               main_menu_kb, protocols_kb,
+                               safeflow_provider_kb, support_submenu_kb,
+                               whitelist_bypass_kb,
+                               whitelist_instruction_view_kb,
+                               whitelist_platforms_kb, whitelist_vkturn_kb,
+                               xray_variants_kb)
+from vpn_bot.paths import resolved_guides_src_dir
 from vpn_bot.services.key_service import KeyService
 from vpn_bot.services.traffic_stats_service import TrafficStatsService
-from vpn_bot.services.vkturn_xray_service import (
-    build_vkturn_vless_bundle,
-)
+from vpn_bot.services.vkturn_xray_service import build_vkturn_vless_bundle
+from vpn_bot.texts_whitelist_bypass import (VKTURN_TEST_INTRO_HTML,
+                                            VKTURN_VK_LINK,
+                                            WHITELIST_BYPASS_INTRO_HTML,
+                                            WHITELIST_INSTR_MENU_HTML,
+                                            WHITELIST_PLATFORM_CHUNKS)
 from vpn_bot.utils.text import split_telegram_message
 
 logger = logging.getLogger(__name__)
@@ -204,13 +187,13 @@ async def gen_whitelist_test(cb: CallbackQuery) -> None:
 async def whitelist_vkturn_generate(cb: CallbackQuery) -> None:
     if isinstance(cb.message, Message):
         try:
-            await cb.message.edit_text("⏳ Генерирую ключ для Happ/v2RayTun + vk-turn…")
+            await cb.message.edit_text("⏳ Генерирую ключ для Happ/v2RayTun + vk-turn…")  # noqa: E501
         except TelegramBadRequest:
             pass
     await cb.answer()
 
     try:
-        host, peer, cmd, local_vless = build_vkturn_vless_bundle(VKTURN_VK_LINK)
+        host, peer, cmd, local_vless = build_vkturn_vless_bundle(VKTURN_VK_LINK)  # noqa: E501
     except ContainerIssueError as e:
         if isinstance(cb.message, Message):
             await cb.message.edit_text(
@@ -228,11 +211,11 @@ async def whitelist_vkturn_generate(cb: CallbackQuery) -> None:
         return
 
     if isinstance(cb.message, Message):
-        termux_stop = 'pkill -f "./client"\npgrep -af client'
+        termux_stop = 'pkill -f "./client"\npgrep -af client'  # noqa: F841
         termux_bootstrap = (
             "pkg update -y && pkg install -y curl && cd \"$HOME\" && "
             "curl -L -o client "
-            "https://github.com/cacggghp/vk-turn-proxy/releases/latest/download/client-android-arm64 "
+            "https://github.com/cacggghp/vk-turn-proxy/releases/latest/download/client-android-arm64 "  # noqa: E501
             f"&& chmod +x client && ./client {cmd}"
         )
         termux_fast = (
@@ -254,12 +237,12 @@ async def whitelist_vkturn_generate(cb: CallbackQuery) -> None:
             f"<code>{termux_check_one}</code>\n\n"
             "<b>Импортируйте в Happ/v2RayTun эту ссылку:</b>\n"
             f"<code>{local_vless}</code>\n\n"
-            "Порядок: сначала запустить Termux, вставить необходимые команды, дождаться "
-            "<code>Established DTLS connection!</code>, потом включить профиль в Happ/v2RayTun.\n\n"
-            "Termux: <a href=\"https://play.google.com/store/apps/details?id=com.termux&amp;hl=ru\">"
-            "https://play.google.com/store/apps/details?id=com.termux&amp;hl=ru</a>\n"
-            "Happ: <a href=\"https://play.google.com/store/apps/details?id=com.happproxy&amp;hl=ru\">"
-            "https://play.google.com/store/apps/details?id=com.happproxy&amp;hl=ru</a>",
+            "Порядок: сначала запустить Termux, вставить необходимые команды, дождаться "  # noqa: E501
+            "<code>Established DTLS connection!</code>, потом включить профиль в Happ/v2RayTun.\n\n"  # noqa: E501
+            "Termux: <a href=\"https://play.google.com/store/apps/details?id=com.termux&amp;hl=ru\">"  # noqa: E501
+            "https://play.google.com/store/apps/details?id=com.termux&amp;hl=ru</a>\n"  # noqa: E501
+            "Happ: <a href=\"https://play.google.com/store/apps/details?id=com.happproxy&amp;hl=ru\">"  # noqa: E501
+            "https://play.google.com/store/apps/details?id=com.happproxy&amp;hl=ru</a>",  # noqa: E501
             parse_mode="HTML",
             link_preview_options=LinkPreviewOptions(is_disabled=True),
             reply_markup=whitelist_vkturn_kb(),
@@ -314,7 +297,7 @@ async def whitelist_platform_view(cb: CallbackQuery) -> None:
                 flat[page],
                 parse_mode="HTML",
                 link_preview_options=LinkPreviewOptions(is_disabled=True),
-                reply_markup=whitelist_instruction_view_kb(slug, page, len(flat)),
+                reply_markup=whitelist_instruction_view_kb(slug, page, len(flat)),  # noqa: E501
             )
         except TelegramBadRequest as e:
             if "message is not modified" in str(e).lower():
@@ -330,7 +313,7 @@ async def whitelist_pagination_noop(cb: CallbackQuery) -> None:
 
 
 @router.callback_query(_auth, F.data.in_({"wl:ok", "wl:bad"}))
-async def whitelist_bypass_feedback(cb: CallbackQuery, session_analytics) -> None:
+async def whitelist_bypass_feedback(cb: CallbackQuery, session_analytics) -> None:  # noqa: E501
     works = cb.data == "wl:ok"
     session_analytics.add(
         WhitelistBypassFeedback(created_at=datetime.now(UTC), works=works)
@@ -366,13 +349,13 @@ async def gen_app_xray(cb: CallbackQuery) -> None:
         await cb.message.edit_text(
             "Для других приложений (не AmneziaVPN).\n\n"
             "Рекомендуемые приложения:\n"
-            'Android: <a href="https://github.com/2dust/v2rayNG/releases">v2rayNG</a> / '
-            '<a href="https://github.com/MatsuriDayo/NekoBoxForAndroid/releases">NekoBox</a> / '
-            '<a href="https://play.google.com/store/apps/details?id=com.v2raytun.android">v2RayTun</a> / '
-            '<a href="https://play.google.com/store/apps/details?id=com.happproxy">Happ</a>\n'
-            'iOS: <a href="https://apps.apple.com/us/app/streisand/id6450534064">Streisand</a> / '
-            '<a href="https://apps.apple.com/us/app/shadowrocket/id932747118">Shadowrocket</a>\n'
-            'Desktop: <a href="https://github.com/MatsuriDayo/nekoray/releases">NekoRay</a> / '
+            'Android: <a href="https://github.com/2dust/v2rayNG/releases">v2rayNG</a> / '  # noqa: E501
+            '<a href="https://github.com/MatsuriDayo/NekoBoxForAndroid/releases">NekoBox</a> / '  # noqa: E501
+            '<a href="https://play.google.com/store/apps/details?id=com.v2raytun.android">v2RayTun</a> / '  # noqa: E501
+            '<a href="https://play.google.com/store/apps/details?id=com.happproxy">Happ</a>\n'  # noqa: E501
+            'iOS: <a href="https://apps.apple.com/us/app/streisand/id6450534064">Streisand</a> / '  # noqa: E501
+            '<a href="https://apps.apple.com/us/app/shadowrocket/id932747118">Shadowrocket</a>\n'  # noqa: E501
+            'Desktop: <a href="https://github.com/MatsuriDayo/nekoray/releases">NekoRay</a> / '  # noqa: E501
             '<a href="https://github.com/2dust/v2rayN/releases">v2rayN</a>\n\n'
             "Выберите формат Xray-конфигурации:",
             parse_mode="HTML",
@@ -389,16 +372,16 @@ async def gen_xray_apps_info(cb: CallbackQuery) -> None:
         "<b>Android:</b>\n"
         "• GitHub: "
         '<a href="https://github.com/2dust/v2rayNG/releases">v2rayNG</a> / '
-        '<a href="https://github.com/MatsuriDayo/NekoBoxForAndroid/releases">NekoBox</a>\n'
+        '<a href="https://github.com/MatsuriDayo/NekoBoxForAndroid/releases">NekoBox</a>\n'  # noqa: E501
         "• Google Play: "
-        '<a href="https://play.google.com/store/apps/details?id=com.v2raytun.android">v2RayTun</a> / '
-        '<a href="https://play.google.com/store/apps/details?id=com.happproxy">Happ</a>\n\n'
+        '<a href="https://play.google.com/store/apps/details?id=com.v2raytun.android">v2RayTun</a> / '  # noqa: E501
+        '<a href="https://play.google.com/store/apps/details?id=com.happproxy">Happ</a>\n\n'  # noqa: E501
         "<b>iOS:</b> "
-        '<a href="https://apps.apple.com/us/app/streisand/id6450534064">Streisand</a> / '
-        '<a href="https://apps.apple.com/us/app/foxray/id6448898396">FoXray</a> / '
-        '<a href="https://apps.apple.com/us/app/shadowrocket/id932747118">Shadowrocket</a>\n\n'
+        '<a href="https://apps.apple.com/us/app/streisand/id6450534064">Streisand</a> / '  # noqa: E501
+        '<a href="https://apps.apple.com/us/app/foxray/id6448898396">FoXray</a> / '  # noqa: E501
+        '<a href="https://apps.apple.com/us/app/shadowrocket/id932747118">Shadowrocket</a>\n\n'  # noqa: E501
         "<b>Desktop:</b> "
-        '<a href="https://github.com/MatsuriDayo/nekoray/releases">NekoRay</a> / '
+        '<a href="https://github.com/MatsuriDayo/nekoray/releases">NekoRay</a> / '  # noqa: E501
         '<a href="https://github.com/2dust/v2rayN/releases">v2rayN</a>'
     )
     if isinstance(cb.message, Message):
@@ -420,7 +403,7 @@ async def gen_cancel(cb: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.callback_query(_auth, F.data.startswith("gen:deliv:"))
-async def gen_deliver(cb: CallbackQuery, state: FSMContext, db_user: User, session) -> None:
+async def gen_deliver(cb: CallbackQuery, state: FSMContext, db_user: User, session) -> None:  # noqa: C901, E501
     data = await state.get_data()
     proto_raw = data.get("protocol")
     if not proto_raw:
@@ -468,7 +451,7 @@ async def gen_deliver(cb: CallbackQuery, state: FSMContext, db_user: User, sessi
         if isinstance(cb.message, Message):
             try:
                 await cb.message.edit_text(
-                    "ℹ️ Не удалось выдать конфигурацию. Подробности — в сообщении ниже."
+                    "ℹ️ Не удалось выдать конфигурацию. Подробности — в сообщении ниже."  # noqa: E501
                 )
             except TelegramBadRequest:
                 pass
@@ -482,7 +465,7 @@ async def gen_deliver(cb: CallbackQuery, state: FSMContext, db_user: User, sessi
         )
         await bot.send_message(
             chat_id,
-            "Не удалось сгенерировать ключ. Попробуйте позже или напишите в поддержку.",
+            "Не удалось сгенерировать ключ. Попробуйте позже или напишите в поддержку.",  # noqa: E501
         )
         if isinstance(cb.message, Message):
             try:
@@ -505,7 +488,7 @@ async def gen_deliver(cb: CallbackQuery, state: FSMContext, db_user: User, sessi
         if isinstance(cb.message, Message):
             try:
                 await cb.message.edit_text(
-                    "❌ Не удалось отправить конфигурацию. Напишите в поддержку."
+                    "❌ Не удалось отправить конфигурацию. Напишите в поддержку."  # noqa: E501
                 )
             except TelegramBadRequest:
                 pass
@@ -539,7 +522,7 @@ async def instructions_entry(message: Message) -> None:
     )
 
 
-@router.message(_auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_SUPPORT_DONATE)
+@router.message(_auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_SUPPORT_DONATE)  # noqa: E501
 async def support_submenu_open(message: Message) -> None:
     await message.answer(
         "Техподдержка и донат. Выберите действие.",
@@ -560,38 +543,38 @@ INSTRUCTIONS = {
     "ios": (
         "iOS:\n"
         "1) Установите приложение Amnezia из appstore.\n"
-        'Если приложение не отображается в AppStore при поиске, то нужно сменить регион на США в настройках "контента и покупок" устройства\n'
+        'Если приложение не отображается в AppStore при поиске, то нужно сменить регион на США в настройках "контента и покупок" устройства\n'  # noqa: E501
         "2) Получите ключ для подключения с помощью этого бота.\n"
         "3) Включите защищённое соединение в приложении."
     ),
     "android": (
         "Android:\n"
-        "1) Установите приложение Amnezia: https://play.google.com/store/apps/details?id=org.amnezia.vpn&hl=ru \n"
-        "или через github (APK файл): https://github.com/amnezia-vpn/amnezia-client/releases/tag/4.8.14.5 \n"
+        "1) Установите приложение Amnezia: https://play.google.com/store/apps/details?id=org.amnezia.vpn&hl=ru \n"  # noqa: E501
+        "или через github (APK файл): https://github.com/amnezia-vpn/amnezia-client/releases/tag/4.8.14.5 \n"  # noqa: E501
         "2) Получите ключ, файл или QR в этом боте.\n"
         "3) Импортируйте профиль и включите защищённое соединение."
     ),
     "win": (
         "Windows:\n"
-        "1) Скачайте приложение Amnezia с github: https://github.com/amnezia-vpn/amnezia-client/releases/tag/4.8.14.5 \n файл AmneziaVPN_4.8.14.5_x64.exe \n"
-        "2) Скопируйте ключ или файл настройки из этого бота и вставьте его в приложение.\n"
+        "1) Скачайте приложение Amnezia с github: https://github.com/amnezia-vpn/amnezia-client/releases/tag/4.8.14.5 \n файл AmneziaVPN_4.8.14.5_x64.exe \n"  # noqa: E501
+        "2) Скопируйте ключ или файл настройки из этого бота и вставьте его в приложение.\n"  # noqa: E501
         "3) Активируйте защищённое соединение в программе."
     ),
     "mac": (
         "macOS:\n"
-        "1) Установите приложение Amnezia через github: https://github.com/amnezia-vpn/amnezia-client/releases/tag/4.8.14.5 \n"
+        "1) Установите приложение Amnezia через github: https://github.com/amnezia-vpn/amnezia-client/releases/tag/4.8.14.5 \n"  # noqa: E501
         "файл AmneziaVPN_4.8.14.5_macos.pkg \n"
         "2) Скопируйте ключ или файл конфигурации из этого бота.\n"
         "3) Включите защищённое соединение через меню приложения."
     ),
 }
 
-_GUIDE_PDF_NAMES = {"ios": "ios.pdf", "android": "android.pdf", "win": "windows.pdf"}
+_GUIDE_PDF_NAMES = {"ios": "ios.pdf", "android": "android.pdf", "win": "windows.pdf"}  # noqa: E501
 
 
 @router.message(_auth, _not_in_contact, Command("mystats"))
-async def cmd_mystats(message: Message, db_user: User, session_analytics) -> None:
-    lines, chart_buf = await TrafficStatsService(session_analytics).user_weekly_report(
+async def cmd_mystats(message: Message, db_user: User, session_analytics) -> None:  # noqa: E501
+    lines, chart_buf = await TrafficStatsService(session_analytics).user_weekly_report(  # noqa: E501
         db_user.id
     )
     text = "\n".join(lines)
@@ -613,7 +596,7 @@ async def instructions_send_pdf(cb: CallbackQuery) -> None:
     plat = parts[2]
     pdf_name = _GUIDE_PDF_NAMES.get(plat)
     if not pdf_name or not isinstance(cb.message, Message):
-        await cb.answer("Гайд для этой платформы не настроен.", show_alert=True)
+        await cb.answer("Гайд для этой платформы не настроен.", show_alert=True)  # noqa: E501
         return
     path = resolved_guides_src_dir() / pdf_name
     if not path.is_file():
@@ -650,9 +633,9 @@ async def instructions_pick(cb: CallbackQuery) -> None:
             await cb.message.edit_text(
                 "1) установить VPN\n"
                 "2) Откройте настройки VPN в настройках системы.\n"
-                "3) Включите опцию постоянного подключения (Always-on / Всегда включен).\n"
-                "4) В настройках приложения выберите \"маршрутизация\" или \"туннелирование\", выберите: приложения:\n"
-                "-  которые будут идти только через VPN, или те, которые будут идти без VPN,\n"
+                "3) Включите опцию постоянного подключения (Always-on / Всегда включен).\n"  # noqa: E501
+                "4) В настройках приложения выберите \"маршрутизация\" или \"туннелирование\", выберите: приложения:\n"  # noqa: E501
+                "-  которые будут идти только через VPN, или те, которые будут идти без VPN,\n"  # noqa: E501
                 "- или выберите, чтобы весь трафик шёл через VPN.\n"
                 "5) Сохраните настройки",
                 reply_markup=instructions_platform_kb(),
@@ -663,14 +646,14 @@ async def instructions_pick(cb: CallbackQuery) -> None:
         if isinstance(cb.message, Message):
             await cb.message.edit_text(
                 "<b>Telegram proxy</b>\n\n"
-                "Зачем: если полный VPN недоступен или неудобен, можно направить "
-                "<b>только трафик Telegram</b> через прокси на нашем сервере (MTProto или SOCKS — "
-                "ссылки выдаёт бот в разделе «Telegram proxy»). Так Telegram иногда снова открывается "
+                "Зачем: если полный VPN недоступен или неудобен, можно направить "  # noqa: E501
+                "<b>только трафик Telegram</b> через прокси на нашем сервере (MTProto или SOCKS — "  # noqa: E501
+                "ссылки выдаёт бот в разделе «Telegram proxy»). Так Telegram иногда снова открывается "  # noqa: E501
                 "там, где обычный интернет его режет или не пускает.\n\n"
-                "<b>Важно:</b> у части сетей и операторов такой прокси ведёт себя нестабильно или "
-                "не подключается — для отдельных пользователей это нормально. Тогда надёжнее "
+                "<b>Важно:</b> у части сетей и операторов такой прокси ведёт себя нестабильно или "  # noqa: E501
+                "не подключается — для отдельных пользователей это нормально. Тогда надёжнее "  # noqa: E501
                 "полноценный VPN (ключ в этом боте).\n\n"
-                "Готовые ссылки и параметры — в главном меню: кнопка «Telegram proxy».",
+                "Готовые ссылки и параметры — в главном меню: кнопка «Telegram proxy».",  # noqa: E501
                 parse_mode="HTML",
                 link_preview_options=LinkPreviewOptions(is_disabled=True),
                 reply_markup=instructions_telegram_proxy_kb(),

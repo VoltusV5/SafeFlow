@@ -30,7 +30,7 @@ async def try_password(message: Message, db_user: User, session) -> None:
         n = await UserService(session).register_password_fail(db_user)
         if n >= MAX_PASSWORD_FAIL_ATTEMPTS:
             await message.answer(
-                "Достигнут лимит неверных попыток. Пароль больше не принимается. "
+                "Достигнут лимит неверных попыток. Пароль больше не принимается. "  # noqa: E501
                 "Обратитесь к администратору."
             )
         else:
@@ -40,8 +40,8 @@ async def try_password(message: Message, db_user: User, session) -> None:
     await UserService(session).set_password_ok(db_user)
     await message.answer(
         "Пароль принят.\n\n"
-        "Сервис предназначен исключительно для законных целей в соответствии с "
-        "законодательством РФ. Мы не поддерживаем и не поощряем использование для "
+        "Сервис предназначен исключительно для законных целей в соответствии с "  # noqa: E501
+        "законодательством РФ. Мы не поддерживаем и не поощряем использование для "  # noqa: E501
         "доступа к запрещённым ресурсам или нарушения закона.",
         reply_markup=main_menu_kb(),
     )

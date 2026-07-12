@@ -8,12 +8,9 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from vpn_bot.db.models import (
-    DonationAlertsSubscription,
-    StarDonationSubscription,
-    StarPayment,
-    SupportFunnelEvent,
-)
+from vpn_bot.db.models import (DonationAlertsSubscription,
+                               StarDonationSubscription, StarPayment,
+                               SupportFunnelEvent)
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +41,7 @@ async def log_support_funnel_event(
     try:
         session.add(SupportFunnelEvent(user_id=user_id, event=kind))
     except Exception:
-        logger.exception("log_support_funnel_event failed kind=%s user=%s", kind, user_id)
+        logger.exception("log_support_funnel_event failed kind=%s user=%s", kind, user_id)  # noqa: E501
 
 
 async def _counts_by_event(
@@ -82,24 +79,24 @@ async def support_funnel_digest_lines(
     lines = [
         "",
         "Поддержка проекта (воронка в бота):",
-        f"  • открыли «Поддержать» (кнопка или /donate): {o_n} раз, уникальных пользователей: {o_u}",
-        f"  • всего внутренних действий (inline и шаги ниже, без первого открытия): {inner_total}",
+        f"  • открыли «Поддержать» (кнопка или /donate): {o_n} раз, уникальных пользователей: {o_u}",  # noqa: E501
+        f"  • всего внутренних действий (inline и шаги ниже, без первого открытия): {inner_total}",  # noqa: E501
         "  • по шагам (раз / уникальных):",
-        f"    — назад к способам оплаты: {c(SupportFunnelKind.MENU)[0]} / {c(SupportFunnelKind.MENU)[1]}",
-        f"    — выбрали Donation Alerts: {c(SupportFunnelKind.DA)[0]} / {c(SupportFunnelKind.DA)[1]}",
-        f"    — DA разово (экран со ссылкой): {c(SupportFunnelKind.DA_ONCE)[0]} / {c(SupportFunnelKind.DA_ONCE)[1]}",
-        f"    — DA ежемесячно (+ экран со ссылкой): {c(SupportFunnelKind.DA_MONTHLY)[0]} / {c(SupportFunnelKind.DA_MONTHLY)[1]}",
-        f"    — выбрали Tribute: {c(SupportFunnelKind.TR)[0]} / {c(SupportFunnelKind.TR)[1]}",
-        f"    — Tribute — показаны ссылки веб/Telegram: {c(SupportFunnelKind.TR_LINKS)[0]} / {c(SupportFunnelKind.TR_LINKS)[1]}",
-        f"    — Tribute — ссылки не заданы: {c(SupportFunnelKind.TR_EMPTY)[0]} / {c(SupportFunnelKind.TR_EMPTY)[1]}",
-        f"    — звёзды — открыли ввод суммы: {c(SupportFunnelKind.ST)[0]} / {c(SupportFunnelKind.ST)[1]}",
-        f"    — звёзды — ввели допустимую сумму: {c(SupportFunnelKind.ST_AMOUNT)[0]} / {c(SupportFunnelKind.ST_AMOUNT)[1]}",
-        f"    — звёзды — выставлен счёт (разово): {c(SupportFunnelKind.ST_INV_ONCE)[0]} / {c(SupportFunnelKind.ST_INV_ONCE)[1]}",
-        f"    — звёзды — выставлен счёт (ежемесячно): {c(SupportFunnelKind.ST_INV_MONTHLY)[0]} / {c(SupportFunnelKind.ST_INV_MONTHLY)[1]}",
-        f"    — звёзды — счёт из напоминания: {c(SupportFunnelKind.ST_REMINDER_INV)[0]} / {c(SupportFunnelKind.ST_REMINDER_INV)[1]}",
-        f"    — отключили напоминание DA: {c(SupportFunnelKind.DA_REM_OFF)[0]} / {c(SupportFunnelKind.DA_REM_OFF)[1]}",
-        f"    — отключили напоминание звёзд: {c(SupportFunnelKind.ST_REM_OFF)[0]} / {c(SupportFunnelKind.ST_REM_OFF)[1]}",
-        "  • внешние переходы по url-кнопкам Telegram не присылает в бот — ориентир: "
+        f"    — назад к способам оплаты: {c(SupportFunnelKind.MENU)[0]} / {c(SupportFunnelKind.MENU)[1]}",  # noqa: E501
+        f"    — выбрали Donation Alerts: {c(SupportFunnelKind.DA)[0]} / {c(SupportFunnelKind.DA)[1]}",  # noqa: E501
+        f"    — DA разово (экран со ссылкой): {c(SupportFunnelKind.DA_ONCE)[0]} / {c(SupportFunnelKind.DA_ONCE)[1]}",  # noqa: E501
+        f"    — DA ежемесячно (+ экран со ссылкой): {c(SupportFunnelKind.DA_MONTHLY)[0]} / {c(SupportFunnelKind.DA_MONTHLY)[1]}",  # noqa: E501
+        f"    — выбрали Tribute: {c(SupportFunnelKind.TR)[0]} / {c(SupportFunnelKind.TR)[1]}",  # noqa: E501
+        f"    — Tribute — показаны ссылки веб/Telegram: {c(SupportFunnelKind.TR_LINKS)[0]} / {c(SupportFunnelKind.TR_LINKS)[1]}",  # noqa: E501
+        f"    — Tribute — ссылки не заданы: {c(SupportFunnelKind.TR_EMPTY)[0]} / {c(SupportFunnelKind.TR_EMPTY)[1]}",  # noqa: E501
+        f"    — звёзды — открыли ввод суммы: {c(SupportFunnelKind.ST)[0]} / {c(SupportFunnelKind.ST)[1]}",  # noqa: E501
+        f"    — звёзды — ввели допустимую сумму: {c(SupportFunnelKind.ST_AMOUNT)[0]} / {c(SupportFunnelKind.ST_AMOUNT)[1]}",  # noqa: E501
+        f"    — звёзды — выставлен счёт (разово): {c(SupportFunnelKind.ST_INV_ONCE)[0]} / {c(SupportFunnelKind.ST_INV_ONCE)[1]}",  # noqa: E501
+        f"    — звёзды — выставлен счёт (ежемесячно): {c(SupportFunnelKind.ST_INV_MONTHLY)[0]} / {c(SupportFunnelKind.ST_INV_MONTHLY)[1]}",  # noqa: E501
+        f"    — звёзды — счёт из напоминания: {c(SupportFunnelKind.ST_REMINDER_INV)[0]} / {c(SupportFunnelKind.ST_REMINDER_INV)[1]}",  # noqa: E501
+        f"    — отключили напоминание DA: {c(SupportFunnelKind.DA_REM_OFF)[0]} / {c(SupportFunnelKind.DA_REM_OFF)[1]}",  # noqa: E501
+        f"    — отключили напоминание звёзд: {c(SupportFunnelKind.ST_REM_OFF)[0]} / {c(SupportFunnelKind.ST_REM_OFF)[1]}",  # noqa: E501
+        "  • внешние переходы по url-кнопкам Telegram не присылает в бот — ориентир: "  # noqa: E501
         "строки «DA … экран со ссылкой» и «Tribute — показаны ссылки».",
     ]
 
@@ -121,7 +118,7 @@ async def support_funnel_digest_lines(
     lines.extend(
         [
             "  • оплаты звёздами (успешные платежи в боте, БД star_payments):",
-            f"    — платежей: {pay_n}, уникальных плательщиков: {pay_u}, всего звёзд: {stars_sum} ⭐",
+            f"    — платежей: {pay_n}, уникальных плательщиков: {pay_u}, всего звёзд: {stars_sum} ⭐",  # noqa: E501
         ]
     )
 
@@ -143,8 +140,8 @@ async def support_funnel_digest_lines(
     )
     lines.extend(
         [
-            f"  • оформили ежемесячное напоминание Donation Alerts: {int(da_sub or 0)}",
-            f"  • оформили ежемесячную подписку на звёзды (напоминания): {int(st_sub or 0)}",
+            f"  • оформили ежемесячное напоминание Donation Alerts: {int(da_sub or 0)}",  # noqa: E501
+            f"  • оформили ежемесячную подписку на звёзды (напоминания): {int(st_sub or 0)}",  # noqa: E501
         ]
     )
 

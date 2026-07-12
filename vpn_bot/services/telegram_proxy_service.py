@@ -92,7 +92,7 @@ def iter_mtproto_ports(settings: Settings) -> list[int]:
 
 def build_socks_telegram_https_link(settings: Settings) -> str | None:
     """Основной порт SOCKS5 (обратная совместимость)."""
-    return build_socks_telegram_https_link_for_port(settings, settings.telegram_socks_port)
+    return build_socks_telegram_https_link_for_port(settings, settings.telegram_socks_port)  # noqa: E501
 
 
 def build_socks_telegram_https_link_for_port(
@@ -136,18 +136,18 @@ def format_telegram_proxy_message(settings: Settings) -> str:
     if not host:
         return (
             "Прокси для Telegram пока не настроен: в .env нужен "
-            "TELEGRAM_PROXY_HOST или PUBLIC_HOST / WG_ENDPOINT с адресом сервера."
+            "TELEGRAM_PROXY_HOST или PUBLIC_HOST / WG_ENDPOINT с адресом сервера."  # noqa: E501
         )
     if not is_telegram_proxy_configured(settings):
         return (
-            "Прокси для Telegram на сервере ещё не подключены или не заданы переменные "
-            "TELEGRAM_MTPROTO_SECRET, TELEGRAM_SOCKS_USER, TELEGRAM_SOCKS_PASSWORD. "
+            "Прокси для Telegram на сервере ещё не подключены или не заданы переменные "  # noqa: E501
+            "TELEGRAM_MTPROTO_SECRET, TELEGRAM_SOCKS_USER, TELEGRAM_SOCKS_PASSWORD. "  # noqa: E501
             "Обратитесь к администратору."
         )
 
     lines = [
         "Можно выбрать любой из вариантов ниже. "
-        "Обычно по Wi‑Fi работает нормально; через мобильный интернет заметно хуже.",
+        "Обычно по Wi‑Fi работает нормально; через мобильный интернет заметно хуже.",  # noqa: E501
         "",
         "MTProto:",
     ]
@@ -158,14 +158,14 @@ def format_telegram_proxy_message(settings: Settings) -> str:
             lines.append(
                 f'<a href="{href}">Подключить MTProto (порт {port})</a>'
             )
-            
+              # noqa: W293, E114, E116
     # Добавляем 4-ый прокси "MTProto РФ" с маскировкой под vk.com
     ru_secret = "7lYrylrQIe6G7B_fgSA1Eot2ay5jb20"
     ru_port = 4433
-    q_ru = urlencode({"server": host, "port": str(ru_port), "secret": ru_secret})
+    q_ru = urlencode({"server": host, "port": str(ru_port), "secret": ru_secret})  # noqa: E501
     link_ru = f"https://t.me/proxy?{q_ru}"
     href_ru = escape(link_ru, quote=True)
-    lines.append(f'<a href="{href_ru}">Подключить MTProto РФ (порт {ru_port})</a>')
+    lines.append(f'<a href="{href_ru}">Подключить MTProto РФ (порт {ru_port})</a>')  # noqa: E501
 
     if len(lines) == 3:
         lines.append("Подключить MTProto")

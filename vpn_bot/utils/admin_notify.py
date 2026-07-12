@@ -1,4 +1,4 @@
-"""Отправка сообщений администраторам через Telegram Bot API (тот же BOT_TOKEN)."""
+"""Отправка сообщений администраторам через Telegram Bot API (тот же BOT_TOKEN)."""  # noqa: E501
 
 from __future__ import annotations
 

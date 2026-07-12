@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Алерты админу: свободное место на /, рост ошибок journalctl -p err по выбранным юнитам.
+"""Алерты админу: свободное место на /, рост ошибок journalctl -p err по выбранным юнитам.  # noqa: E501
 
-Падение systemd/Docker/SQLite покрывает scripts/vpn_bot_healthcheck.py (+ timer).
+Падение systemd/Docker/SQLite покрывает scripts/vpn_bot_healthcheck.py (+ timer).  # noqa: E501
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from vpn_bot.config import get_settings
-from vpn_bot.utils.admin_notify import send_message_to_admins
+from vpn_bot.config import get_settings  # noqa: E402
+from vpn_bot.utils.admin_notify import send_message_to_admins  # noqa: E402
 
 _STATE_FILE = _PROJECT_ROOT / ".admin_alerts_state.json"
 
@@ -87,7 +87,7 @@ def _journal_err_count(units: list[str], window_min: int) -> int:
     return len(lines)
 
 
-def main() -> int:
+def main() -> int:  # noqa: C901
     os.chdir(_PROJECT_ROOT)
     s = get_settings()
     if not s.admin_alerts_enabled:
@@ -130,7 +130,7 @@ def main() -> int:
     window = max(5, int(s.admin_alert_journal_window_min))
     if not units:
         print(
-            "admin_alerts: ADMIN_JOURNAL_UNITS пуст — пропуск подсчёта journalctl.",
+            "admin_alerts: ADMIN_JOURNAL_UNITS пуст — пропуск подсчёта journalctl.",  # noqa: E501
             file=sys.stderr,
         )
         n = -1
@@ -158,15 +158,15 @@ def main() -> int:
         if _cooldown_ok(state, "journal", cooldown):
             parts = [
                 f"📋 journalctl -p err за последние {window} мин.",
-                f"Юниты: {', '.join(units) if units else '(нет — задайте ADMIN_JOURNAL_UNITS)'}",
+                f"Юниты: {', '.join(units) if units else '(нет — задайте ADMIN_JOURNAL_UNITS)'}",  # noqa: E501
                 f"Строк: {n}"
-                + (f" (прошлый замер: {prev})" if prev is not None else " (первый замер)"),
+                + (f" (прошлый замер: {prev})" if prev is not None else " (первый замер)"),  # noqa: E501
             ]
             if n >= abs_thr:
                 parts.append(f"Сработал порог «много ошибок»: ≥{abs_thr}.")
             if spike:
                 parts.append(
-                    f"Сработал рост: ≥{ratio:.1f}× от прошлого и ≥{floor} строк."
+                    f"Сработал рост: ≥{ratio:.1f}× от прошлого и ≥{floor} строк."  # noqa: E501
                 )
             messages.append("\n".join(parts))
             _mark_sent(state, "journal")

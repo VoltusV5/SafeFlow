@@ -1,22 +1,34 @@
+"""Утилиты безопасности и шифрования.
+
+Модуль предоставляет функции для симметричного шифрования строк (например, конфигураций VPN).  # noqa: E501
+"""
+
 from cryptography.fernet import Fernet
 
+
 def encrypt_data(data: str, key: str) -> str:
+    """Шифрует данные с использованием Fernet и предоставленного ключа.
+
+    Args:
+        data (str): Исходные данные для шифрования.
+        key (str): Ключ шифрования в формате Fernet.
+
+    Returns:
+        str: Зашифрованные данные в виде строки (URL-safe base64).
     """
-    Encrypts string data using Fernet symmetric encryption.
-    :param data: The plaintext string to encrypt.
-    :param key: The URL-safe base64-encoded 32-byte key.
-    :return: The encrypted string (URL-safe base64-encoded).
-    """
-    f = Fernet(key.encode('utf-8'))
-    return f.encrypt(data.encode('utf-8')).decode('utf-8')
+    f = Fernet(key.encode("utf-8"))
+    return f.encrypt(data.encode("utf-8")).decode("utf-8")
 
 
 def decrypt_data(encrypted_data: str, key: str) -> str:
+    """Расшифровывает строковые данные, зашифрованные через Fernet.
+
+    Args:
+        encrypted_data: Зашифрованная строка.
+        key: Ключ шифрования (URL-safe base64-кодированный 32-байтный ключ).
+
+    Returns:
+        Расшифрованная (исходная) строка.
     """
-    Decrypts string data using Fernet symmetric encryption.
-    :param encrypted_data: The encrypted string.
-    :param key: The URL-safe base64-encoded 32-byte key.
-    :return: The decrypted plaintext string.
-    """
-    f = Fernet(key.encode('utf-8'))
-    return f.decrypt(encrypted_data.encode('utf-8')).decode('utf-8')
+    f = Fernet(key.encode("utf-8"))
+    return f.decrypt(encrypted_data.encode("utf-8")).decode("utf-8")

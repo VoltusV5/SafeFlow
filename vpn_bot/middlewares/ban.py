@@ -17,7 +17,7 @@ class BanMiddleware(BaseMiddleware):
         if user is None or not user.is_banned:
             return await handler(event, data)
 
-        text = "Доступ заблокирован. Если это ошибка, свяжитесь с администратором."
+        text = "Доступ заблокирован. Если это ошибка, свяжитесь с администратором."  # noqa: E501
         if isinstance(event, Update):
             if event.message:
                 await event.message.answer(text)

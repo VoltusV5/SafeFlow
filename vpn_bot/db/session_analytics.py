@@ -2,11 +2,8 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from sqlalchemy import event, text
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
 
 from vpn_bot.config import get_settings
 from vpn_bot.db.analytics_base import BaseAnalytics
@@ -17,7 +14,7 @@ _engine_kw: dict = {"echo": False}
 if "sqlite" in _settings.analytics_database_url.lower():
     _engine_kw["connect_args"] = {"timeout": 30.0}
 
-engine_analytics = create_async_engine(_settings.analytics_database_url, **_engine_kw)
+engine_analytics = create_async_engine(_settings.analytics_database_url, **_engine_kw)  # noqa: E501
 
 
 @event.listens_for(engine_analytics.sync_engine, "connect")

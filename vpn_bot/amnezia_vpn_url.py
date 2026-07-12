@@ -1,4 +1,4 @@
-"""Ссылка vpn:// для импорта в клиент Amnezia (как в exportController.cpp: qCompress + Base64Url)."""
+"""Ссылка vpn:// для импорта в клиент Amnezia (как в exportController.cpp: qCompress + Base64Url)."""  # noqa: E501
 
 from __future__ import annotations
 
@@ -186,7 +186,7 @@ def build_amnezia_share_document(
     dns2: str,
     description: str,
 ) -> dict[str, object]:
-    """Один контейнер, несколько протоколов (openvpn-cloak: openvpn+shadowsocks+cloak)."""
+    """Один контейнер, несколько протоколов (openvpn-cloak: openvpn+shadowsocks+cloak)."""  # noqa: E501
     block: dict[str, object] = {"container": container}
     for proto_key, inner in protocol_last_config_objects.items():
         block[proto_key] = {

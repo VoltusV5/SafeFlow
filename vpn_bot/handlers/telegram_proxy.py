@@ -6,7 +6,8 @@ from vpn_bot.constants import MAIN_MENU_BUTTON_TELEGRAM_PROXY
 from vpn_bot.filters import AuthedFilter
 from vpn_bot.handlers.contact_admin import ContactStates
 from vpn_bot.handlers.report_problem import ReportProblemStates
-from vpn_bot.services.telegram_proxy_service import format_telegram_proxy_message
+from vpn_bot.services.telegram_proxy_service import \
+    format_telegram_proxy_message
 from vpn_bot.utils.text import split_telegram_message
 
 router = Router(name="telegram_proxy")
@@ -17,7 +18,7 @@ _not_in_contact = and_f(
 )
 
 
-@router.message(_auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_TELEGRAM_PROXY)
+@router.message(_auth, _not_in_contact, F.text == MAIN_MENU_BUTTON_TELEGRAM_PROXY)  # noqa: E501
 @router.message(_auth, _not_in_contact, Command("telegram_proxy"))
 async def telegram_proxy_info(message: Message) -> None:
     from vpn_bot.config import get_settings

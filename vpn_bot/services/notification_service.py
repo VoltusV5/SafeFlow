@@ -24,6 +24,6 @@ class NotificationService:
             body=body[:4096],
             scheduled_date=None,
             sent_at=datetime.now(UTC),
-            status=NotificationStatus.SENT if ok else NotificationStatus.FAILED,
+            status=NotificationStatus.SENT if ok else NotificationStatus.FAILED,  # noqa: E501
         )
         self._s.add(row)

@@ -1,6 +1,6 @@
-"""Опциональное удаление давно неактивных WG-ключей из БД (по last_activity_at на awg).
+"""Опциональное удаление давно неактивных WG-ключей из БД (по last_activity_at на awg).  # noqa: E501
 
-При STALE_WG_KEY_DAYS=0 вызов ничего не делает — ключи остаются для вернувшихся пользователей.
+При STALE_WG_KEY_DAYS=0 вызов ничего не делает — ключи остаются для вернувшихся пользователей.  # noqa: E501
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ async def purge_stale_wg_keys(session: AsyncSession, stale_days: int) -> int:
             VpnKey.wg_peer_public_key.isnot(None),
             VpnKey.wg_peer_public_key != "",
             or_(
-                and_(VpnKey.last_activity_at.is_(None), VpnKey.generated_at < cutoff),
+                and_(VpnKey.last_activity_at.is_(None), VpnKey.generated_at < cutoff),  # noqa: E501
                 and_(
                     VpnKey.last_activity_at.isnot(None),
                     VpnKey.last_activity_at < cutoff,

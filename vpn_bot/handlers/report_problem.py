@@ -5,10 +5,12 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import CallbackQuery, Message, User as TgUser
+from aiogram.types import CallbackQuery, Message
+from aiogram.types import User as TgUser
 
 from vpn_bot.config import get_settings
-from vpn_bot.constants import MAIN_MENU_BUTTON_BACK_TO_MAIN, REPORT_PROBLEM_PRESETS
+from vpn_bot.constants import (MAIN_MENU_BUTTON_BACK_TO_MAIN,
+                               REPORT_PROBLEM_PRESETS)
 from vpn_bot.db.models import ProblemReport, User
 from vpn_bot.filters import AuthedFilter
 from vpn_bot.keyboards import main_menu_kb, report_problem_kb
@@ -30,7 +32,7 @@ async def _notify_admins_report(
     session,
     sender: TgUser | None = None,
 ) -> bool:
-    """sender: при вызове из callback укажите cb.from_user — у cb.message автор сообщения бот."""
+    """sender: при вызове из callback укажите cb.from_user — у cb.message автор сообщения бот."""  # noqa: E501
     settings = get_settings()
     admins = settings.admin_ids
     if not admins:
@@ -78,14 +80,14 @@ async def _notify_admins_report(
 async def report_entry(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer(
-        "Что именно не работает? Выберите вариант — администратор получит уведомление.\n\n"
+        "Что именно не работает? Выберите вариант — администратор получит уведомление.\n\n"  # noqa: E501
         "Пункт «Другое» — опишите ситуацию одним сообщением.\n\n"
         "/cancel_report — отмена.",
         reply_markup=report_problem_kb(),
     )
 
 
-@router.message(_auth, StateFilter(ReportProblemStates.waiting_other), Command("cancel_report"))
+@router.message(_auth, StateFilter(ReportProblemStates.waiting_other), Command("cancel_report"))  # noqa: E501
 async def report_cancel_cmd(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer("Отменено.", reply_markup=main_menu_kb())
@@ -103,7 +105,7 @@ async def report_cb_cancel(cb: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.callback_query(_auth, F.data.startswith("fb:c:"))
-async def report_cb_preset(cb: CallbackQuery, state: FSMContext, session, db_user: User) -> None:
+async def report_cb_preset(cb: CallbackQuery, state: FSMContext, session, db_user: User) -> None:  # noqa: E501
     await state.clear()
     if not isinstance(cb.message, Message):
         await cb.answer()
@@ -134,12 +136,12 @@ async def report_cb_preset(cb: CallbackQuery, state: FSMContext, session, db_use
         return
     try:
         await cb.message.edit_text(
-            "Спасибо, мы получили ваше сообщение. Администратор увидит его в боте "
+            "Спасибо, мы получили ваше сообщение. Администратор увидит его в боте "  # noqa: E501
             "и при необходимости ответит вам здесь."
         )
     except TelegramBadRequest:
         await cb.message.answer(
-            "Спасибо, мы получили ваше сообщение. Администратор увидит его в боте "
+            "Спасибо, мы получили ваше сообщение. Администратор увидит его в боте "  # noqa: E501
             "и при необходимости ответит вам здесь."
         )
     await cb.answer()
@@ -163,18 +165,18 @@ async def report_cb_other(cb: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.message(_auth, StateFilter(ReportProblemStates.waiting_other))
-async def report_other_text(message: Message, state: FSMContext, session, db_user: User) -> None:
+async def report_other_text(message: Message, state: FSMContext, session, db_user: User) -> None:  # noqa: E501
     if message.text and message.text.strip() == MAIN_MENU_BUTTON_BACK_TO_MAIN:
         await state.clear()
         await message.answer("Главное меню.", reply_markup=main_menu_kb())
         return
     if message.text and message.text.startswith("/"):
         await message.answer(
-            "Сейчас ожидается описание проблемы текстом или команда /cancel_report."
+            "Сейчас ожидается описание проблемы текстом или команда /cancel_report."  # noqa: E501
         )
         return
     if not message.text or not message.text.strip():
-        await message.answer("Нужен текстовый ответ. Опишите проблему или /cancel_report.")
+        await message.answer("Нужен текстовый ответ. Опишите проблему или /cancel_report.")  # noqa: E501
         return
     body = message.text.strip()
     ok = await _notify_admins_report(
@@ -187,11 +189,11 @@ async def report_other_text(message: Message, state: FSMContext, session, db_use
     await state.clear()
     if not ok:
         await message.answer(
-            "Не удалось отправить: в настройках бота не заданы администраторы (ADMIN_IDS).",
+            "Не удалось отправить: в настройках бота не заданы администраторы (ADMIN_IDS).",  # noqa: E501
             reply_markup=main_menu_kb(),
         )
         return
     await message.answer(
-        "Спасибо, описание передано администратору. При необходимости он ответит вам здесь.",
+        "Спасибо, описание передано администратору. При необходимости он ответит вам здесь.",  # noqa: E501
         reply_markup=main_menu_kb(),
     )

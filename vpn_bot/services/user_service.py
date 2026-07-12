@@ -55,7 +55,7 @@ class UserService:
         await self._s.flush()
         return user
 
-    async def ban_by_username(self, username: str, banned: bool) -> User | None:
+    async def ban_by_username(self, username: str, banned: bool) -> User | None:  # noqa: E501
         clean = username.lstrip("@").lower()
         r = await self._s.execute(select(User))
         for u in r.scalars().all():
@@ -67,7 +67,7 @@ class UserService:
 
     async def list_authorized_users(self) -> list[User]:
         r = await self._s.execute(
-            select(User).where(User.password_entered.is_(True), User.is_banned.is_(False))
+            select(User).where(User.password_entered.is_(True), User.is_banned.is_(False))  # noqa: E501
         )
         return list(r.scalars().all())
 

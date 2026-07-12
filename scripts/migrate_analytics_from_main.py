@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Одноразово: копирует traffic_log, host_metric_samples, daily_stats из основной SQLite в analytics."""
+"""Одноразово: копирует traffic_log, host_metric_samples, daily_stats из основной SQLite в analytics."""  # noqa: E501
 
 from __future__ import annotations
 
@@ -14,9 +14,9 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
-from vpn_bot.config import get_settings
-from vpn_bot.db.session_analytics import init_analytics_db
-from vpn_bot.utils.sqlite_backup import resolve_sqlite_path
+from vpn_bot.config import get_settings  # noqa: E402
+from vpn_bot.db.session_analytics import init_analytics_db  # noqa: E402
+from vpn_bot.utils.sqlite_backup import resolve_sqlite_path  # noqa: E402
 
 TABLES = ("traffic_log", "host_metric_samples", "daily_stats")
 
@@ -30,7 +30,7 @@ def _migrate_rows(main_path: Path, ana_path: Path) -> None:
     conn = sqlite3.connect(str(ana_path), timeout=60.0)
     try:
         conn.execute("PRAGMA busy_timeout=30000")
-        conn.execute(f"ATTACH DATABASE ? AS m", (str(main_path),))
+        conn.execute(f"ATTACH DATABASE ? AS m", (str(main_path),))  # noqa: F541, E501
         for t in TABLES:
             cur = conn.execute(
                 "SELECT 1 FROM m.sqlite_master WHERE type='table' AND name=?",
@@ -71,12 +71,12 @@ def _drop_main_tables(main_path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Перенос тяжёлых таблиц в отдельный файл analytics (см. ANALYTICS_DATABASE_URL).",
+        description="Перенос тяжёлых таблиц в отдельный файл analytics (см. ANALYTICS_DATABASE_URL).",  # noqa: E501
     )
     parser.add_argument(
         "--drop-main-tables",
         action="store_true",
-        help="После копирования удалить эти таблицы в основной БД (сделайте бэкап!)",
+        help="После копирования удалить эти таблицы в основной БД (сделайте бэкап!)",  # noqa: E501
     )
     args = parser.parse_args()
     os.chdir(_PROJECT_ROOT)
@@ -87,7 +87,7 @@ def main() -> None:
         print("Основная SQLite не найдена (DATABASE_URL).", file=sys.stderr)
         sys.exit(1)
     if not ana_p:
-        print("ANALYTICS_DATABASE_URL не указывает на SQLite.", file=sys.stderr)
+        print("ANALYTICS_DATABASE_URL не указывает на SQLite.", file=sys.stderr)  # noqa: E501
         sys.exit(2)
     asyncio.run(_ensure_analytics_schema())
     _migrate_rows(main_p, ana_p)

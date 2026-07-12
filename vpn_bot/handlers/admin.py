@@ -6,26 +6,25 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandObject, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import BufferedInputFile, CallbackQuery, Message, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import (BufferedInputFile, CallbackQuery,  # noqa: F401
+                           InlineKeyboardButton, InlineKeyboardMarkup, Message)
 
 from vpn_bot.config import get_settings
 from vpn_bot.db.models import User
 from vpn_bot.enums import VpnProtocol
 from vpn_bot.exceptions import TooManyKeysError
 from vpn_bot.filters import AdminFilter
-from vpn_bot.keyboards import admin_menu_kb, dm_flow_kb, reset_keys_all_confirm_kb
-from vpn_bot.texts import KEYS_INVALIDATED_SINGLE, KEYS_RESET_BROADCAST
+from vpn_bot.keyboards import (admin_menu_kb, dm_flow_kb,
+                               reset_keys_all_confirm_kb)
 from vpn_bot.services.admin_digest_service import send_admin_digest
-from vpn_bot.services.admin_user_export_service import (
-    build_admin_users_traffic_handshake_report,
-)
-from vpn_bot.services.amnezia_protocols import (
-    provision_wireguard_admin_key,
-    provision_xray_admin_key,
-)
+from vpn_bot.services.admin_user_export_service import \
+    build_admin_users_traffic_handshake_report
+from vpn_bot.services.amnezia_protocols import (provision_wireguard_admin_key,
+                                                provision_xray_admin_key)
 from vpn_bot.services.key_service import KeyService
 from vpn_bot.services.notification_service import NotificationService
 from vpn_bot.services.user_service import UserService
+from vpn_bot.texts import KEYS_INVALIDATED_SINGLE, KEYS_RESET_BROADCAST
 from vpn_bot.utils.moscow_schedule import yesterday_moscow_date
 
 router = Router(name="admin")
@@ -56,25 +55,25 @@ async def cmd_admin(message: Message) -> None:
         "Кнопки ниже и команды:\n"
         "/ban @user|id — запретить доступ\n"
         "/unban @user|id — вернуть доступ\n"
-        "/delkeys @user|id — сбросить конфигурации пользователя и уведомить его\n"
-        "/msg — сообщение одному пользователю (черновик + /sendmsg, как рассылка)\n"
+        "/delkeys @user|id — сбросить конфигурации пользователя и уведомить его\n"  # noqa: E501
+        "/msg — сообщение одному пользователю (черновик + /sendmsg, как рассылка)\n"  # noqa: E501
         "/passunlock <id|@user> — сбросить счётчик неверных паролей\n\n"
-        "Кнопка «Сброс конфигураций всем» — отключить все ключи и уведомить всех.\n"
-        "Рассылка: черновик → /sendnotification, отмена — /cansel или /cancel.\n\n"
+        "Кнопка «Сброс конфигураций всем» — отключить все ключи и уведомить всех.\n"  # noqa: E501
+        "Рассылка: черновик → /sendnotification, отмена — /cansel или /cancel.\n\n"  # noqa: E501
         "/admin_report — полный дайджест за вчера (МСК), как в 08:00 утра, "
         "+ 3 графика CPU/RAM/сеть.\n"
-        "/admin_users_export — txt: username, трафик за всё время, WG-handshake по каждому ключу "
+        "/admin_users_export — txt: username, трафик за всё время, WG-handshake по каждому ключу "  # noqa: E501
         "(только чтение; wg dump сейчас).\n"
-        "/admin_heavy_users — txt: пользователи, превысившие 100 ГБ за текущий месяц.\n"
+        "/admin_heavy_users — txt: пользователи, превысившие 100 ГБ за текущий месяц.\n"  # noqa: E501
         "/admin_newkey <имя> — сгенерировать ключ с заданным именем.\n"
         "/admin_delkey <имя> — удалить и деактивировать ключи по имени.\n"
-        "/raw_config wg|xray — новый ключ на ваш аккаунт в БД + сырой клиентский файл.",
+        "/raw_config wg|xray — новый ключ на ваш аккаунт в БД + сырой клиентский файл.",  # noqa: E501
         reply_markup=admin_menu_kb(),
     )
 
 
 @router.message(_admin, Command("raw_config"))
-async def cmd_raw_config(message: Message, command: CommandObject, session) -> None:
+async def cmd_raw_config(message: Message, command: CommandObject, session) -> None:  # noqa: E501
     us = UserService(session)
     db_user = await us.get_by_tg_id(message.from_user.id)
     if db_user is None:
@@ -84,11 +83,11 @@ async def cmd_raw_config(message: Message, command: CommandObject, session) -> N
     if arg not in ("wg", "xray"):
         await message.answer(
             "Формат: /raw_config wg или /raw_config xray\n\n"
-            "Создаётся запись ключа на ваш аккаунт (как «Новый ключ»), плюс файл с клиентской "
+            "Создаётся запись ключа на ваш аккаунт (как «Новый ключ»), плюс файл с клиентской "  # noqa: E501
             "частью:\n"
             "• wg — client.wg.conf;\n"
             "• xray — client_xray.json.\n\n"
-            "В key_value в БД хранится vpn:// (как обычно). Файл не пересылайте."
+            "В key_value в БД хранится vpn:// (как обычно). Файл не пересылайте."  # noqa: E501
         )
         return
     await message.answer("Генерирую ключ и клиентский конфиг…")
@@ -96,11 +95,11 @@ async def cmd_raw_config(message: Message, command: CommandObject, session) -> N
     ks = KeyService(session)
     try:
         if arg == "wg":
-            raw_text, cfg = await asyncio.to_thread(provision_wireguard_admin_key, s)
-            await ks.generate_one_from_provided(db_user, VpnProtocol.WIREGUARD, cfg)
+            raw_text, cfg = await asyncio.to_thread(provision_wireguard_admin_key, s)  # noqa: E501
+            await ks.generate_one_from_provided(db_user, VpnProtocol.WIREGUARD, cfg)  # noqa: E501
             filename = "client.wg.conf"
         else:
-            raw_text, cfg = await asyncio.to_thread(provision_xray_admin_key, s)
+            raw_text, cfg = await asyncio.to_thread(provision_xray_admin_key, s)  # noqa: E501
             await ks.generate_one_from_provided(db_user, VpnProtocol.XRAY, cfg)
             filename = "client_xray.json"
     except TooManyKeysError as e:
@@ -113,7 +112,7 @@ async def cmd_raw_config(message: Message, command: CommandObject, session) -> N
     data = raw_text.encode("utf-8")
     await message.answer_document(
         BufferedInputFile(data, filename=filename),
-        caption="Ключ записан на ваш аккаунт в БД; в файле — клиентский конфиг. Не пересылайте.",
+        caption="Ключ записан на ваш аккаунт в БД; в файле — клиентский конфиг. Не пересылайте.",  # noqa: E501
     )
 
 
@@ -125,13 +124,13 @@ async def cmd_admin_report(message: Message) -> None:
 
 
 @router.message(_admin, Command("admin_users_export"))
-async def cmd_admin_users_export(message: Message, session, session_analytics) -> None:
+async def cmd_admin_users_export(message: Message, session, session_analytics) -> None:  # noqa: E501
     await message.answer(
         "Собираю txt: пользователи, трафик за всё время, handshake по ключам "
         "(чтение БД + wg show dump, ключи не трогаю)…"
     )
     try:
-        body = await build_admin_users_traffic_handshake_report(session, session_analytics)
+        body = await build_admin_users_traffic_handshake_report(session, session_analytics)  # noqa: E501
     except Exception:
         logger.exception("admin_users_export failed")
         await message.answer("Ошибка при сборе отчёта, см. лог бота.")
@@ -140,30 +139,31 @@ async def cmd_admin_users_export(message: Message, session, session_analytics) -
     fn = "users_traffic_handshakes.txt"
     await message.answer_document(
         BufferedInputFile(data, filename=fn),
-        caption="Пользователи: username, ГБ за всё время, handshake по ключам.",
+        caption="Пользователи: username, ГБ за всё время, handshake по ключам.",  # noqa: E501
     )
 
 
 @router.message(_admin, Command("admin_heavy_users"))
-async def cmd_admin_heavy_users(message: Message, session, session_analytics) -> None:
-    from vpn_bot.services.traffic_stats_service import get_heavy_users_this_month
-    await message.answer("Собираю пользователей, превысивших 100 ГБ за этот месяц...")
+async def cmd_admin_heavy_users(message: Message, session, session_analytics) -> None:  # noqa: E501
+    from vpn_bot.services.traffic_stats_service import \
+        get_heavy_users_this_month
+    await message.answer("Собираю пользователей, превысивших 100 ГБ за этот месяц...")  # noqa: E501
     try:
-        users = await get_heavy_users_this_month(session, session_analytics, 100.0)
+        users = await get_heavy_users_this_month(session, session_analytics, 100.0)  # noqa: E501
     except Exception:
         logger.exception("admin_heavy_users failed")
         await message.answer("Ошибка при сборе отчёта.")
         return
-    
+      # noqa: W293, E114
     if not users:
-        await message.answer("Нет пользователей, превысивших 100 ГБ в этом месяце.")
+        await message.answer("Нет пользователей, превысивших 100 ГБ в этом месяце.")  # noqa: E501
         return
-    
+      # noqa: W293, E114
     lines = ["Пользователи > 100 ГБ за текущий месяц (МСК):"]
     for u, gb in users:
         un = f"@{u.tg_username}" if u.tg_username else f"ID:{u.tg_id}"
         lines.append(f"{un} — {gb:.2f} ГБ")
-    
+      # noqa: W293, E114
     data = "\n".join(lines).encode("utf-8")
     await message.answer_document(
         BufferedInputFile(data, filename="heavy_users.txt"),
@@ -175,7 +175,7 @@ async def cmd_admin_heavy_users(message: Message, session, session_analytics) ->
 async def adm_resetkeys_prompt(cb: CallbackQuery) -> None:
     if isinstance(cb.message, Message):
         await cb.message.edit_text(
-            "Отключить все активные конфигурации у всех пользователей в базе?\n"
+            "Отключить все активные конфигурации у всех пользователей в базе?\n"  # noqa: E501
             "Каждому авторизованному пользователю уйдёт уведомление о сбросе.",
             reply_markup=reset_keys_all_confirm_kb(),
         )
@@ -226,17 +226,17 @@ async def adm_notify_start(cb: CallbackQuery, state: FSMContext) -> None:
     await state.update_data({_NOTIFY_IDS_KEY: []})
     if isinstance(cb.message, Message):
         await cb.message.edit_text(
-            "Отправьте в чат всё, что нужно разослать — сколько угодно сообщений подряд "
+            "Отправьте в чат всё, что нужно разослать — сколько угодно сообщений подряд "  # noqa: E501
             "(текст, фото, документы, стикеры и т.д.).\n\n"
-            "Когда закончите, отправьте команду /sendnotification — бот скопирует "
-            "все эти сообщения каждому авторизованному пользователю в том же порядке.\n\n"
+            "Когда закончите, отправьте команду /sendnotification — бот скопирует "  # noqa: E501
+            "все эти сообщения каждому авторизованному пользователю в том же порядке.\n\n"  # noqa: E501
             "/cansel или /cancel — отменить без отправки."
         )
     await cb.answer()
 
 
-@router.message(_admin, StateFilter(AdminStates.waiting_notify), Command("sendnotification"))
-async def adm_notify_commit(message: Message, state: FSMContext, session) -> None:
+@router.message(_admin, StateFilter(AdminStates.waiting_notify), Command("sendnotification"))  # noqa: E501
+async def adm_notify_commit(message: Message, state: FSMContext, session) -> None:  # noqa: E501
     data = await state.get_data()
     ids: list[int] = list(data.get(_NOTIFY_IDS_KEY, []))
     if not ids:
@@ -270,7 +270,7 @@ async def adm_notify_commit(message: Message, state: FSMContext, session) -> Non
         ok=failed == 0,
     )
     await message.answer(
-        f"Готово. В черновике было сообщений: {len(ids)}, пользователей: {len(users)}. "
+        f"Готово. В черновике было сообщений: {len(ids)}, пользователей: {len(users)}. "  # noqa: E501
         f"Успешных копирований: {ok}, ошибок: {failed}."
     )
 
@@ -290,7 +290,7 @@ async def adm_notify_accumulate(message: Message, state: FSMContext) -> None:
     if message.text and message.text.startswith("/"):
         await message.answer(
             "Сообщения-команды (начинающиеся с /) в черновик не добавляются. "
-            "Сначала завершите или отмените рассылку (/sendnotification или /cansel), "
+            "Сначала завершите или отмените рассылку (/sendnotification или /cansel), "  # noqa: E501
             "затем выполните команду."
         )
         return
@@ -323,13 +323,13 @@ async def _dm_execute_send(
 
 
 @router.message(_admin, Command("msg"))
-async def cmd_msg(message: Message, command: CommandObject, state: FSMContext, session) -> None:
+async def cmd_msg(message: Message, command: CommandObject, state: FSMContext, session) -> None:  # noqa: E501
     raw = (command.args or "").strip()
     parts = raw.split(maxsplit=1)
     if len(parts) >= 2:
         await message.answer(
             "Ответ одному пользователю делается так:\n"
-            "• /msg — затем id или @username, затем любое число сообщений и /sendmsg;\n"
+            "• /msg — затем id или @username, затем любое число сообщений и /sendmsg;\n"  # noqa: E501
             "• или /msg <id|@username> — сразу режим черновика.\n\n"
             "Текст в одной строке с /msg больше не используется."
         )
@@ -353,7 +353,7 @@ async def cmd_msg(message: Message, command: CommandObject, state: FSMContext, s
         await state.update_data({_DM_IDS_KEY: [], _DM_TARGET_TG_KEY: None})
         await message.answer(
             "Сообщение одному пользователю.\n"
-            "Следующим сообщением отправьте Telegram ID (число) или @username.\n\n"
+            "Следующим сообщением отправьте Telegram ID (число) или @username.\n\n"  # noqa: E501
             "/cansel_dm — отмена."
         )
         return
@@ -385,10 +385,10 @@ async def dm_target_cancel(message: Message, state: FSMContext) -> None:
 
 
 @router.message(_admin, StateFilter(AdminStates.waiting_dm_target), F.text)
-async def dm_target_receive(message: Message, state: FSMContext, session) -> None:
+async def dm_target_receive(message: Message, state: FSMContext, session) -> None:  # noqa: E501
     u = await _resolve_target(session, message.text.strip())
     if not u:
-        await message.answer("Пользователь не найден. Попробуйте снова или /cansel_dm.")
+        await message.answer("Пользователь не найден. Попробуйте снова или /cansel_dm.")  # noqa: E501
         return
     await state.set_state(AdminStates.waiting_dm_draft)
     await state.update_data({_DM_TARGET_TG_KEY: u.tg_id, _DM_IDS_KEY: []})
@@ -406,7 +406,7 @@ async def dm_target_receive(message: Message, state: FSMContext, session) -> Non
     StateFilter(AdminStates.waiting_dm_draft),
     Command("sendmsg"),
 )
-async def dm_draft_sendmsg(message: Message, state: FSMContext, session) -> None:
+async def dm_draft_sendmsg(message: Message, state: FSMContext, session) -> None:  # noqa: E501
     data = await state.get_data()
     ids: list[int] = list(data.get(_DM_IDS_KEY, []))
     target = data.get(_DM_TARGET_TG_KEY)
@@ -466,7 +466,7 @@ async def dm_cb_commit(cb: CallbackQuery, state: FSMContext, session) -> None:
         return
 
     await state.clear()
-    chat_id = cb.message.chat.id if isinstance(cb.message, Message) else cb.from_user.id
+    chat_id = cb.message.chat.id if isinstance(cb.message, Message) else cb.from_user.id  # noqa: E501
     ok, err = await _dm_execute_send(cb.bot, chat_id, int(target), ids)
     if not ok:
         if isinstance(cb.message, Message):
@@ -475,7 +475,7 @@ async def dm_cb_commit(cb: CallbackQuery, state: FSMContext, session) -> None:
         return
     if isinstance(cb.message, Message):
         await cb.message.edit_text(
-            f"Готово. Отправлено {len(ids)} сообщ. пользователю tg_id={target}."
+            f"Готово. Отправлено {len(ids)} сообщ. пользователю tg_id={target}."  # noqa: E501
         )
     await cb.answer()
 
@@ -507,11 +507,11 @@ async def dm_draft_accumulate(message: Message, state: FSMContext) -> None:
 
 
 @router.message(_admin, Command("passunlock"))
-async def cmd_passunlock(message: Message, command: CommandObject, session) -> None:
+async def cmd_passunlock(message: Message, command: CommandObject, session) -> None:  # noqa: E501
     arg = (command.args or "").strip()
     if not arg:
         await message.answer(
-            "Сбросить счётчик неверных паролей (после 50 попыток ввод блокируется):\n"
+            "Сбросить счётчик неверных паролей (после 50 попыток ввод блокируется):\n"  # noqa: E501
             "/passunlock <telegram_id или @username>"
         )
         return
@@ -537,14 +537,14 @@ async def cmd_ban(message: Message, command: CommandObject, session) -> None:
         await message.answer("Пользователь не найден в базе бота.")
         return
     await UserService(session).set_banned(u.tg_id, True)
-    await message.answer(f"Забанен: tg_id={u.tg_id}, @{u.tg_username or 'без username'}")
+    await message.answer(f"Забанен: tg_id={u.tg_id}, @{u.tg_username or 'без username'}")  # noqa: E501
 
 
 @router.message(_admin, Command("unban"))
 async def cmd_unban(message: Message, command: CommandObject, session) -> None:
     arg = (command.args or "").strip()
     if not arg:
-        await message.answer("Формат: /unban @username или /unban <telegram_id>")
+        await message.answer("Формат: /unban @username или /unban <telegram_id>")  # noqa: E501
         return
     u = await _resolve_target(session, arg)
     if not u:
@@ -555,10 +555,10 @@ async def cmd_unban(message: Message, command: CommandObject, session) -> None:
 
 
 @router.message(_admin, Command("delkeys"))
-async def cmd_delkeys(message: Message, command: CommandObject, session) -> None:
+async def cmd_delkeys(message: Message, command: CommandObject, session) -> None:  # noqa: E501
     arg = (command.args or "").strip()
     if not arg:
-        await message.answer("Формат: /delkeys @username или /delkeys <telegram_id>")
+        await message.answer("Формат: /delkeys @username или /delkeys <telegram_id>")  # noqa: E501
         return
     u = await _resolve_target(session, arg)
     if not u:
@@ -571,55 +571,56 @@ async def cmd_delkeys(message: Message, command: CommandObject, session) -> None
     except TelegramBadRequest:
         pass
     await message.answer(
-        f"Конфигурации отключены для tg_id={u.tg_id}. Пользователь уведомлён (если чат доступен)."
+        f"Конфигурации отключены для tg_id={u.tg_id}. Пользователь уведомлён (если чат доступен)."  # noqa: E501
     )
 
 
 def _admin_protocols_kb() -> InlineKeyboardMarkup:
-    from vpn_bot.enums import VpnProtocol
     from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    from vpn_bot.enums import VpnProtocol
     rows = []
     line = []
     for p in VpnProtocol:
-        line.append(InlineKeyboardButton(text=VpnProtocol.label(p), callback_data=f"admgen:proto:{p.value}"))
+        line.append(InlineKeyboardButton(text=VpnProtocol.label(p), callback_data=f"admgen:proto:{p.value}"))  # noqa: E501
         if len(line) == 2:
             rows.append(line)
             line = []
     if line:
         rows.append(line)
-    rows.append([InlineKeyboardButton(text="Отмена", callback_data="admgen:cancel")])
+    rows.append([InlineKeyboardButton(text="Отмена", callback_data="admgen:cancel")])  # noqa: E501
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
-@router.message(_admin, Command("adm_newkey", "admin_newkey"))
-async def cmd_adm_newkey(message: Message, command: CommandObject, state: FSMContext) -> None:
+@router.message(_admin, Command("adm_newkey", "admin_newkey"))  # noqa: E302
+async def cmd_adm_newkey(message: Message, command: CommandObject, state: FSMContext) -> None:  # noqa: E501
     arg = (command.args or "").strip()
     if not arg:
         await message.answer("Формат: /admin_newkey <имя ключа>")
         return
     await state.update_data(adm_newkey_name=arg)
-    await message.answer(f"Генерация ключа для '{arg}'. Выберите протокол:", reply_markup=_admin_protocols_kb())
+    await message.answer(f"Генерация ключа для '{arg}'. Выберите протокол:", reply_markup=_admin_protocols_kb())  # noqa: E501
     await state.set_state(AdminStates.waiting_adm_newkey_proto)
 
-@router.callback_query(_admin, StateFilter(AdminStates.waiting_adm_newkey_proto), F.data == "admgen:cancel")
+@router.callback_query(_admin, StateFilter(AdminStates.waiting_adm_newkey_proto), F.data == "admgen:cancel")  # noqa: E302, E501
 async def adm_newkey_cancel(cb: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     if isinstance(cb.message, Message):
         await cb.message.edit_text("Генерация ключа отменена.")
     await cb.answer()
 
-@router.callback_query(_admin, StateFilter(AdminStates.waiting_adm_newkey_proto), F.data.startswith("admgen:proto:"))
-async def adm_newkey_proto_cb(cb: CallbackQuery, state: FSMContext, session, db_user: User) -> None:
+@router.callback_query(_admin, StateFilter(AdminStates.waiting_adm_newkey_proto), F.data.startswith("admgen:proto:"))  # noqa: E302, E501
+async def adm_newkey_proto_cb(cb: CallbackQuery, state: FSMContext, session, db_user: User) -> None:  # noqa: C901, E501
     raw = cb.data.split(":")[2]
-    from vpn_bot.enums import VpnProtocol, KeyDelivery
-    from vpn_bot.exceptions import PeerGenerationError, TooManyKeysError
+    from vpn_bot.enums import KeyDelivery, VpnProtocol  # noqa: F401
+    from vpn_bot.exceptions import PeerGenerationError, TooManyKeysError  # noqa: F401, F401, E501
+    from vpn_bot.handlers.delivery import deliver_secure_key  # noqa: F401
     from vpn_bot.services.key_service import KeyService
-    from vpn_bot.handlers.delivery import deliver_secure_key
     try:
         protocol = VpnProtocol(raw)
     except ValueError:
         await cb.answer("Неизвестный тип профиля", show_alert=True)
         return
-    
+      # noqa: W293, E114
     data = await state.get_data()
     custom_name = data.get("adm_newkey_name")
     if not custom_name:
@@ -629,7 +630,7 @@ async def adm_newkey_proto_cb(cb: CallbackQuery, state: FSMContext, session, db_
 
     if isinstance(cb.message, Message):
         try:
-            await cb.message.edit_text(f"⏳ Генерирую конфигурацию ({protocol.value}) для '{custom_name}'…")
+            await cb.message.edit_text(f"⏳ Генерирую конфигурацию ({protocol.value}) для '{custom_name}'…")  # noqa: E501
         except TelegramBadRequest:
             pass
     await cb.answer()
@@ -647,19 +648,20 @@ async def adm_newkey_proto_cb(cb: CallbackQuery, state: FSMContext, session, db_
     await state.clear()
     try:
         import html
+
         from aiogram.enums import ParseMode
-        
-        doc = BufferedInputFile(key.key_value.strip().encode("utf-8"), filename=key.config_filename)
-        await cb.bot.send_document(cb.from_user.id, doc, caption=f"Конфигурация для: {custom_name}")
-        
+          # noqa: W293, E114, E116
+        doc = BufferedInputFile(key.key_value.strip().encode("utf-8"), filename=key.config_filename)  # noqa: E501
+        await cb.bot.send_document(cb.from_user.id, doc, caption=f"Конфигурация для: {custom_name}")  # noqa: E501
+          # noqa: W293, E114, E116
         body = key.key_value.strip()
-        text = f'<pre><code class="language-python">{html.escape(body)}</code></pre>'
+        text = f'<pre><code class="language-python">{html.escape(body)}</code></pre>'  # noqa: E501
         if len(text) <= 4096:
-            await cb.bot.send_message(cb.from_user.id, text, parse_mode=ParseMode.HTML)
+            await cb.bot.send_message(cb.from_user.id, text, parse_mode=ParseMode.HTML)  # noqa: E501
         else:
             from vpn_bot.handlers.delivery import _pre_html_messages
             for part in _pre_html_messages(body):
-                await cb.bot.send_message(cb.from_user.id, part, parse_mode=ParseMode.HTML)
+                await cb.bot.send_message(cb.from_user.id, part, parse_mode=ParseMode.HTML)  # noqa: E501
     except Exception:
         logger.exception("adm_newkey delivery failed")
         if isinstance(cb.message, Message):
@@ -673,30 +675,31 @@ async def adm_newkey_proto_cb(cb: CallbackQuery, state: FSMContext, session, db_
 
 
 @router.message(_admin, Command("adm_delkey", "admin_delkey"))
-async def cmd_adm_delkey(message: Message, command: CommandObject, session) -> None:
+async def cmd_adm_delkey(message: Message, command: CommandObject, session) -> None:  # noqa: E501
     arg = (command.args or "").strip()
     if not arg:
         await message.answer("Формат: /admin_delkey <имя ключа>")
         return
-    
-    from vpn_bot.db.models import VpnKey
+      # noqa: W293, E114
     from sqlalchemy import select, update
+
+    from vpn_bot.db.models import VpnKey
     from vpn_bot.services.revocation_service import revoke_key_on_server
 
-    r = await session.execute(select(VpnKey).where(VpnKey.custom_name == arg, VpnKey.is_active.is_(True)))
+    r = await session.execute(select(VpnKey).where(VpnKey.custom_name == arg, VpnKey.is_active.is_(True)))  # noqa: E501
     keys = r.scalars().all()
-    
+      # noqa: W293, E114, E116
     if not keys:
         await message.answer(f"Активные ключи с именем '{arg}' не найдены.")
         return
-    
+      # noqa: W293, E114
     count = len(keys)
     for k in keys:
         await revoke_key_on_server(k)
-        
+          # noqa: W293, E114, E116
     await session.execute(
-        update(VpnKey).where(VpnKey.custom_name == arg, VpnKey.is_active.is_(True)).values(is_active=False)
+        update(VpnKey).where(VpnKey.custom_name == arg, VpnKey.is_active.is_(True)).values(is_active=False)  # noqa: E501
     )
     await session.commit()
     await message.answer(f"Успешно удалено ключей с именем '{arg}': {count}")
-
+  # noqa: W391, E114

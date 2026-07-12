@@ -1,17 +1,11 @@
-from aiogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    KeyboardButton,
-    ReplyKeyboardMarkup,
-)
+from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
+                           KeyboardButton, ReplyKeyboardMarkup)
 
-from vpn_bot.constants import (
-    MAIN_MENU_BUTTON_BROWSER_EXTENSION,
-    MAIN_MENU_BUTTON_BACK_TO_MAIN,
-    MAIN_MENU_BUTTON_SUPPORT_DONATE,
-    MAIN_MENU_BUTTON_TELEGRAM_PROXY,
-    REPORT_PROBLEM_PRESETS,
-)
+from vpn_bot.constants import (MAIN_MENU_BUTTON_BACK_TO_MAIN,
+                               MAIN_MENU_BUTTON_BROWSER_EXTENSION,
+                               MAIN_MENU_BUTTON_SUPPORT_DONATE,
+                               MAIN_MENU_BUTTON_TELEGRAM_PROXY,
+                               REPORT_PROBLEM_PRESETS)
 
 
 def main_menu_kb() -> ReplyKeyboardMarkup:
@@ -62,7 +56,7 @@ def browser_extension_kb() -> InlineKeyboardMarkup:
 
 
 def protocols_kb() -> InlineKeyboardMarkup:
-    # Legacy: keep function for compatibility; now entry starts from app selector.
+    # Legacy: keep function for compatibility; now entry starts from app selector.  # noqa: E501
     return key_apps_kb()
 
 
@@ -70,15 +64,15 @@ def whitelist_bypass_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="✅ Работает при белых", callback_data="wl:ok"),
+                InlineKeyboardButton(text="✅ Работает при белых", callback_data="wl:ok"),  # noqa: E501
                 InlineKeyboardButton(
                     text="❌ Не работает при белых",
                     callback_data="wl:bad",
                 ),
             ],
             [
-                InlineKeyboardButton(text="Инструкции", callback_data="wl:instr"),
-                InlineKeyboardButton(text="Назад", callback_data="gen:apps_back"),
+                InlineKeyboardButton(text="Инструкции", callback_data="wl:instr"),  # noqa: E501
+                InlineKeyboardButton(text="Назад", callback_data="gen:apps_back"),  # noqa: E501
             ],
         ]
     )
@@ -93,7 +87,7 @@ def whitelist_vkturn_kb() -> InlineKeyboardMarkup:
                     callback_data="wl:vkgen",
                 )
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],
+            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],  # noqa: E501
         ]
     )
 
@@ -119,7 +113,7 @@ def whitelist_platforms_kb() -> InlineKeyboardMarkup:
 def whitelist_instruction_view_kb(
     slug: str, page: int, total_pages: int
 ) -> InlineKeyboardMarkup:
-    """Одно сообщение: текст + навигация по страницам + возврат к списку систем."""
+    """Одно сообщение: текст + навигация по страницам + возврат к списку систем."""  # noqa: E501
     rows: list[list[InlineKeyboardButton]] = []
     if total_pages > 1:
         nav_btns: list[InlineKeyboardButton] = []
@@ -190,7 +184,7 @@ def safeflow_provider_kb() -> InlineKeyboardMarkup:
                     callback_data="gen:app:xray",
                 ),
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],
+            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],  # noqa: E501
         ]
     )
 
@@ -210,8 +204,8 @@ def amnezia_protocols_kb() -> InlineKeyboardMarkup:
                     callback_data=f"gen:proto:{VpnProtocol.XRAY.value}",
                 ),
             ],
-            [InlineKeyboardButton(text="Другие протоколы", callback_data="gen:amz:other")],
-            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],
+            [InlineKeyboardButton(text="Другие протоколы", callback_data="gen:amz:other")],  # noqa: E501
+            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],  # noqa: E501
         ]
     )
 
@@ -224,7 +218,7 @@ def amnezia_other_protocols_kb() -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=VpnProtocol.label(VpnProtocol.OPENVPN_CLOAK),
-                    callback_data=f"gen:proto:{VpnProtocol.OPENVPN_CLOAK.value}",
+                    callback_data=f"gen:proto:{VpnProtocol.OPENVPN_CLOAK.value}",  # noqa: E501
                 ),
                 InlineKeyboardButton(
                     text=VpnProtocol.label(VpnProtocol.OPENVPN),
@@ -247,7 +241,7 @@ def amnezia_other_protocols_kb() -> InlineKeyboardMarkup:
                     callback_data=f"gen:proto:{VpnProtocol.IPSEC.value}",
                 )
             ],
-            [InlineKeyboardButton(text="Назад", callback_data="gen:app:amnezia")],
+            [InlineKeyboardButton(text="Назад", callback_data="gen:app:amnezia")],  # noqa: E501
         ]
     )
 
@@ -268,7 +262,7 @@ def xray_variants_kb() -> InlineKeyboardMarkup:
                 )
             ],
 
-            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],
+            [InlineKeyboardButton(text="Назад", callback_data="gen:apps_back")],  # noqa: E501
         ]
     )
 
@@ -312,7 +306,7 @@ def instructions_platform_kb() -> InlineKeyboardMarkup:
                     callback_data="help:telegram_proxy",
                 )
             ],
-            [InlineKeyboardButton(text="Как сделать постоянный VPN", callback_data="help:alwayson")],
+            [InlineKeyboardButton(text="Как сделать постоянный VPN", callback_data="help:alwayson")],  # noqa: E501
             [InlineKeyboardButton(text="Закрыть", callback_data="help:close")],
         ]
     )
@@ -383,8 +377,8 @@ def report_problem_kb() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=label, callback_data=f"fb:c:{i}")]
         for i, label in enumerate(REPORT_PROBLEM_PRESETS)
     ]
-    rows.append([InlineKeyboardButton(text="Другое", callback_data="fb:other")])
-    rows.append([InlineKeyboardButton(text="Отмена", callback_data="fb:cancel")])
+    rows.append([InlineKeyboardButton(text="Другое", callback_data="fb:other")])  # noqa: E501
+    rows.append([InlineKeyboardButton(text="Отмена", callback_data="fb:cancel")])  # noqa: E501
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -450,8 +444,8 @@ def da_freq_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="Разово", callback_data="donate:da:o"),
-                InlineKeyboardButton(text="Ежемесячно", callback_data="donate:da:m"),
+                InlineKeyboardButton(text="Разово", callback_data="donate:da:o"),  # noqa: E501
+                InlineKeyboardButton(text="Ежемесячно", callback_data="donate:da:m"),  # noqa: E501
             ],
             [
                 InlineKeyboardButton(

@@ -9,7 +9,7 @@ def parse_wg_dump(raw: str) -> list[dict[str, int | str]]:
         if not line:
             continue
         parts = line.split("\t")
-        # Первая строка — интерфейс (у Amnezia AWG больше 4 полей); peer-строки идут далее.
+        # Первая строка — интерфейс (у Amnezia AWG больше 4 полей); peer-строки идут далее.  # noqa: E501
         if i == 0:
             continue
         if len(parts) < 8:
