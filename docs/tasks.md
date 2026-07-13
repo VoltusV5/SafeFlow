@@ -85,8 +85,8 @@ vpn-telegram-bot/
 - `[x]` Middleware: Проверка `is_banned` и внедрение сессии БД.
 - `[x]` Базовые хендлеры: Команды `/start` (проверка триала), `/help`.
 - `[x]` Базовые хендлеры: Ветка кнопок (Inline / Reply) для навигации по меню.
-- `[ ]` Хендлеры: `/subscribe`, `/my`, `/keys`, `/promo`.
-- `[ ]` Хендлеры: `/admin` (баны, массовая перегенерация, тикеты).
+- `[ ]` Доработка интерфейса: текстовые команды `/subscribe`, `/my` (профиль), `/keys` (список), `/promo`.
+- `[ ]` Админ-панель: `/admin` (баны, массовая перегенерация, тикеты, статистика).
 
 ## Этап 8: Telegram Web App (TWA Frontend)
 - `[x]` Инициализация Frontend проекта (React/Vue/HTML+JS) в папке `twa/` (или `frontend/`).
@@ -101,13 +101,14 @@ vpn-telegram-bot/
 - `[x]` Интеграция с REST API FastAPI (включая Rate Limits и CORS).
 
 ## Этап 10: Smart Agent (Рабочие ноды)
-- `[ ]` Инициализация легковесного FastAPI приложения для агента (`smart_agent/main.py`).
-- `[ ]` Защита эндпоинтов (Static Bearer Token + IP Whitelist).
-- `[ ]` TDD: Тесты конфигураторов -> Логика генерации `wg0.conf` и `config.json` (Xray).
-- `[ ]` Интеграция с локальными сервисами (перезапуск systemd/docker контейнеров WG/Xray).
+- `[x]` Инициализация легковесного FastAPI приложения для агента (`smart_agent/main.py`).
+- `[x]` Защита эндпоинтов (Static Bearer Token + IP Whitelist).
+- `[x]` TDD: Тесты конфигураторов -> Логика генерации `wg0.conf` и `config.json` (Xray).
+- `[x]` Интеграция с сервисами VPN (AmneziaWG, Xray).
 
 ## Этап 11: Инфраструктура и Деплой (DevOps)
 - `[x]` Настройка Nginx для проксирования FastAPI и Frontend (CORS решен).
+- `[ ]` Интеграция боевой платежной системы (ЮKassa / CryptoBot / AAIO) вместо песочницы.
 - `[ ]` Сборка финальных Docker-образов (Backend, Agent, Frontend).
 - `[ ]` Настройка CI/CD пайплайна (GitHub Actions).
 - `[ ]` Подготовка финальной документации MkDocs.

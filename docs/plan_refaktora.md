@@ -12,8 +12,8 @@
 
 * **Центральный сервер (Управляющий):** Здесь работают База Данных, Redis, ядро FastAPI, Telegram-бот (в том же контейнере что и FastAPI), фоновые задачи (Cron/Celery) и документация.
 * **VPN-сервера (Рабочие ноды):** На каждом сервере установлен легковесный агент (FastAPI). 
-  * **Smart Agent (Stateless):** Агент не имеет собственной базы данных и не хранит состояния (Stateless). Центральный сервер управляет пулом IP-адресов и UUID, отправляя агенту уже готовые данные (например, `10.8.0.5` или `UUID`). Агент лишь добавляет их в конфигурацию (AmneziaWG/Xray) и перезапускает службу, возвращая финальный клиентский конфиг.
-  * **Трехслойная защита API нод:** HTTPS (Caddy/Nginx) ➔ Статический Bearer Token ➔ IP Whitelisting (ufw пропускает пакеты только от IP Центрального сервера).
+  * **Smart Agent (Stateless):** Агент не имеет собственной базы данных и не хранит состояния (Stateless). Центральный сервер управляет пулом IP-адресов и UUID, генерирует криптографические ключи и отправляет агенту уже готовые данные (например, X25519 ключи или `UUID`). Агент лишь добавляет их в конфигурацию (AmneziaWG/Xray) "на лету" (Hot-Reload через `wg syncconf` и `xray api gRPC`) без перезапуска самих служб, чтобы не рвать текущие сессии пользователей.
+  * **Трехслойная защита API нод:** HTTPS (Caddy/Nginx) ➔ Статический Bearer Token ➔ IP Whitelisting (ufw пропускает пакеты только от IP Центрального сервера). Никакого прокидывания `docker.sock`!
 * **Синхронизация состояний (Reconciliation):** PostgreSQL — единственный источник правды. Если при запросе к ноде сеть моргнула, ключ сохраняется в БД со статусом `pending_sync`. Фоновая задача (Reconciliation Job) "досылает" конфигурацию на ноду, обеспечивая Eventual Consistency.
 
 ---
@@ -174,7 +174,7 @@ flowchart LR
     
     Core -- "Управление ключами" --> CaddyNode[Caddy Node Proxy]
     CaddyNode -- "HTTPS + Token" --> Agent[Smart Agent]
-    Agent -- "Управление" --> VPN[WireGuard / Xray]
+    Agent -- "Управление" --> VPN[AmneziaWG / Xray]
     
     User -- "VPN Трафик (nl-1.myvpn.com)" --> VPN
 ```
@@ -193,13 +193,13 @@ flowchart TD
     
     subgraph "VPN Node 1 - NL (VPS 2)"
         Agent1["Smart Agent (FastAPI)"]
-        VPN1["Xray / WireGuard\n+ Unbound DNS\n+ tc Shaping"]
+        VPN1["Xray / AmneziaWG\n+ Unbound DNS\n+ tc Shaping"]
         Alloy_1["Grafana Alloy"]
     end
     
     subgraph "VPN Node N - DE (VPS 3)"
         AgentN["Smart Agent (FastAPI)"]
-        VPNN["Xray / WireGuard\n+ Unbound DNS\n+ tc Shaping"]
+        VPNN["Xray / AmneziaWG\n+ Unbound DNS\n+ tc Shaping"]
         Alloy_N["Grafana Alloy"]
     end
 
@@ -234,9 +234,10 @@ sequenceDiagram
     PG-->>B: Webhook: Оплата успешно завершена
     B->>DB: Начисление +30 дней рефереру (ID: 123)
     B->>DB: Начисление подписки пользователю (+7 дней бонус)
-    B->>N: API: Создать ключи (до 3 шт.)
-    N-->>B: Сгенерированные конфиги
-    B->>DB: Сохранение ключей
+    B->>B: Генерация криптографических ключей (X25519) и UUID
+    B->>N: HTTP POST /api/keys: Отправка готовых ключей для Hot-Reload
+    N-->>B: Успешное добавление (Без перезапуска служб)
+    B->>DB: Сохранение клиентских конфигов
     B->>U: Отправка конфигов в чат
 ```
 
@@ -351,8 +352,11 @@ vpn-telegram-bot/
 │   ├── schema.dbml
 │   └── план рефактора.md
 ├── smart_agent/             # Код легковесного агента для нод (FastAPI)
-│   ├── main.py
-│   └── vpn_builder.py
+│   ├── api/                 # Эндпоинты (keys.py, stats.py)
+│   ├── services/            # Интеграция с VPN (awg_manager.py, xray_manager.py)
+│   ├── core/                # Конфигурация и безопасность
+│   ├── schemas/             # Pydantic схемы
+│   └── main.py              # Точка входа агента
 ├── tests/                   # Автотесты (pytest)
 ├── .github/workflows/       # CI/CD пайплайны
 ├── docker-compose.yml       # Инфраструктура центрального сервера

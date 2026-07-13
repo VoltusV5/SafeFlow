@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  smart_agent:
+    build: .
+    container_name: smart_agent
+    restart: always
+    network_mode: "service:amneziawg"
+    environment:
+      - AGENT_TOKEN=${AGENT_TOKEN:-supersecret}
+      - AWG_CONFIG_PATH=/config/wg0.conf
+      - XRAY_API_HOST=xray
+      - XRAY_API_PORT=8080
+    volumes:
+      - awg_config:/config
+    depends_on:
+      - amneziawg
+
+  amneziawg:
+    image: ghcr.io/voltusv5/docker-amneziawg:latest
+    container_name: amneziawg
+    restart: always
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    ports:
+      - "51820:51820/udp"
+      - "8081:8081"
+    volumes:
+      - awg_config:/config
+
+  xray:
+    image: teddysun/xray:latest
+    container_name: xray
+    restart: always
+    ports:
+      - "443:443"
+    volumes:
+      - ./data/xray:/etc/xray
+
+volumes:
+  awg_config:

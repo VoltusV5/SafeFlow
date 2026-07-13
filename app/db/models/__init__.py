@@ -3,6 +3,7 @@
 Модуль собирает все SQLAlchemy модели в одном месте для Alembic и приложения.
 """
 from app.db.models.base import Base
+from app.db.models.bypass import BypassRule
 from app.db.models.key import Key
 from app.db.models.payment import Payment
 from app.db.models.promocode import Promocode

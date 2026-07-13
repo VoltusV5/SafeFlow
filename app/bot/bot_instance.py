@@ -4,7 +4,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from app.bot.handlers import buttons, commands
+from app.bot.handlers import buttons, commands, bypass
 from app.bot.middlewares.uow import UoWMiddleware
 from app.core.config import settings
 
@@ -23,3 +23,4 @@ dp.update.middleware(UoWMiddleware())
 # Подключаем роутеры (хендлеры)
 dp.include_router(commands.router)
 dp.include_router(buttons.router)
+dp.include_router(bypass.router)
